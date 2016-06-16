@@ -60,7 +60,6 @@ six==1.4.1
 todoist==0.0.1
 todoist-python==0.2.24
 virtualenv==15.0.2
-WebOb==1.6.1
 Werkzeug==0.11.10
 xattr==0.6.4
 zope.interface==4.1.1
