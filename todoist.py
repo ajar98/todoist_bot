@@ -37,8 +37,10 @@ def webhook():
                     data=json.dumps(resp_mess),
                     headers={'content-type': 'application/json'})
                 if not fb_response.ok:
-                    print 'jeepers. %s: %s' %
-                    (fb_response.status_code, fb_response.text)
+                    print 'jeepers. %s: %s' % (
+                        fb_response.status_code,
+                        fb_response.text
+                    )
         return "OK", 200
 
 if __name__ == "__main__":
