@@ -1,1 +1,1 @@
-web: gunicorn todoist:app --log-file -
+web: gunicorn todoist_app:app --log-file -
