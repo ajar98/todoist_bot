@@ -20,29 +20,29 @@ def webhook():
             return 'Wrong validation token'
     else:
         if request.method == 'POST':
-            data = json.loads(request.data)['entry'][0]['messaging'][0]
-            print data
-            if 'message' in data:
-                sender_id = data['sender']['id']
-                message = data['message']['text']
-                resp_mess = {
-                    'recipient': {
-                        'id': sender_id
-                    },
-                    'message': {
-                        'text': '{0} to you!'.format(message),
+            data = json.loads(request.data)['entry'][0]['messaging']
+            for m in data:
+                if 'message' in data:
+                    sender_id = m['sender']['id']
+                    message = m['message']['text']
+                    resp_mess = {
+                        'recipient': {
+                            'id': sender_id
+                        },
+                        'message': {
+                            'text': '{0} to you!'.format(message),
+                        }
                     }
-                }
-                fb_response = requests.post(
-                    FB_MESSAGES_ENDPOINT,
-                    params={"access_token": APP_TOKEN},
-                    data=json.dumps(resp_mess),
-                    headers={'content-type': 'application/json'})
-                if not fb_response.ok:
-                    print 'Not ok. %s: %s' % (
-                        fb_response.status_code,
-                        fb_response.text
-                    )
+                    fb_response = requests.post(
+                        FB_MESSAGES_ENDPOINT,
+                        params={"access_token": APP_TOKEN},
+                        data=json.dumps(resp_mess),
+                        headers={'content-type': 'application/json'})
+                    if not fb_response.ok:
+                        print 'Not ok. %s: %s' % (
+                            fb_response.status_code,
+                            fb_response.text
+                        )
         return "OK", 200
 
 if __name__ == "__main__":
