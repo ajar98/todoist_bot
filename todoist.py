@@ -2,6 +2,7 @@ from flask import Flask
 from flask import request
 import json
 import requests
+from client import TodoistClient
 
 app = Flask(__name__)
 
@@ -23,7 +24,7 @@ def webhook():
             data = json.loads(request.data)['entry'][0]['messaging']
             for m in data:
                 print m
-                if 'message' in m:
+                if 'message' in m and 'text' in m['message']:
                     sender_id = m['sender']['id']
                     message = m['message']['text']
                     resp_mess = {
