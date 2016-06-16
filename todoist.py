@@ -32,11 +32,11 @@ def webhook():
                         'text': 'weaboo',
                     }
                 }
-                fb_response = requests.post(
-                    FB_MESSAGES_ENDPOINT,
-                    params={"access_token": APP_TOKEN},
-                    data=json.dumps(resp_mess),
-                    headers={'content-type': 'application/json'})
+                # fb_response = requests.post(
+                #     FB_MESSAGES_ENDPOINT,
+                #     params={"access_token": APP_TOKEN},
+                #     data=json.dumps(resp_mess),
+                #     headers={'content-type': 'application/json'})
                 if not fb_response.ok:
                     print 'jeepers. %s: %s' % (
                         fb_response.status_code,
