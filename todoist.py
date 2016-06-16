@@ -1,6 +1,5 @@
 from flask import Flask
 from flask import request
-from webob import Response
 import os
 
 app = Flask(__name__)
