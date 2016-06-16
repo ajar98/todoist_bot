@@ -4,7 +4,9 @@ import os
 
 app = Flask(__name__)
 
-APP_TOKEN = os.environ['FB_ACCESS_TOKEN']
+APP_TOKEN = "EAAPGnoxDIZC8BAGJC26eKJnuOsHO95ZCqmDvxOY0OoLHUSjecSsZBUObB\
+PYjpLhLzjjv8MdWrSvsYZAAkG6XO3Vx9S54OYHZCFe7nV04pBBhyYK8VPwehszO44W57l6s\
+EbTemYEO4cesUW19ZB2GxAZB1CJuaguPfqlmrtLCzlplgZDZD"
 FB_MESSAGES_ENDPOINT = "https://graph.facebook.com/v2.6/me/messages"
 
 
