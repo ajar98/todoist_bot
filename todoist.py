@@ -1,10 +1,12 @@
 from flask import Flask
 from flask import request
 from webob import Response
+import os
 
 app = Flask(__name__)
 
-APP_TOKEN = "EAAPGnoxDIZC8BAMZBw6SgZCKZAga4nYg0XWHK1QwbJkEvdxzQs6hNV2QoZBxDg1hYJWf9S0LCxwloKjjKutzNFsXfkX5UxO5mNK4TeGMXNYQZA1IW3Sg8OCykvAt4ZBB7nUtJlIZBeHXcjdf4QACUm71bSZBVosUyITnJr0Nu7grAFwZDZD"
+APP_TOKEN = os.environ['FB_ACCESS_TOKEN']
+FB_MESSAGES_ENDPOINT = "https://graph.facebook.com/v2.6/me/messages"
 
 @app.route('/webhook', methods=['GET', 'POST'])
 def webhook():
@@ -15,21 +17,20 @@ def webhook():
             return 'Wrong validation token'
     else:
         if request.method == "POST":
-            event = request.get_json()
-            resp = Response(status=200, mimetype='application/json')
-            respond_FB("1062809190474751", "Hi! to you!")
-            return resp
-
-def respond_FB(sender_id, text):
-    json_data = {
-        "recipient": {"id": sender_id},
-        "message": {"text": text}
-    }
-    params = {
-        "access_token": APP_TOKEN
-    }
-    r = requests.post('https://graph.facebook.com/v2.6/me/messages', json=json_data, params=params)
-    print(r, r.status_code, r.text)
+            data = request.json()
+            sender_id = data["entry"][0]["messaging"][0]["sender"]["id"]
+			send_back_to_fb = {
+		        "recipient": {
+		            "id": sender_id,
+		        },
+		        "message": "this is a test response message"
+		    }
+            fb_response = requests.post(FB_MESSAGES_ENDPOINT,
+                                params={"access_token": FB_TOKEN},
+                                data=send_back_to_fb)
+            if not fb_response.ok:
+            	print 'jeepers. %s: %s' % (fb_response.status_code, fb_response.text)
+        return "OK", 200
 
 if __name__ == "__main__":
 	app.run(host="0.0.0.0", port=5000)
