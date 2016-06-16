@@ -23,6 +23,7 @@ def webhook():
             data = json.loads(request.data)['entry'][0]['messaging']
             print len(data)
             for m in data:
+                print m
                 resp_id = m['sender']['id']
                 resp_mess = {
                     'recipient': {
@@ -37,11 +38,11 @@ def webhook():
                 #     params={"access_token": APP_TOKEN},
                 #     data=json.dumps(resp_mess),
                 #     headers={'content-type': 'application/json'})
-                if not fb_response.ok:
-                    print 'jeepers. %s: %s' % (
-                        fb_response.status_code,
-                        fb_response.text
-                    )
+                # if not fb_response.ok:
+                #     print 'jeepers. %s: %s' % (
+                #         fb_response.status_code,
+                #         fb_response.text
+                #     )
         return "OK", 200
 
 if __name__ == "__main__":
