@@ -22,6 +22,7 @@ def webhook():
         if request.method == 'POST':
             data = json.loads(request.data)['entry'][0]['messaging']
             for m in data:
+                print m
                 if 'message' in data:
                     sender_id = m['sender']['id']
                     message = m['message']['text']
