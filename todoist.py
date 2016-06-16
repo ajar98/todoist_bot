@@ -27,7 +27,7 @@ def webhook():
                         'id': resp_id
                     },
                     'message': {
-                        'text': m['message']['text'],
+                        'text': 'yes?',
                     }
                 }
                 fb_response = requests.post(
