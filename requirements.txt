@@ -15,8 +15,6 @@ py2app==0.7.3
 pycrypto==2.6.1
 pytz==2013.7
 requests==2.10.0
-scipy==0.13.0b1
-six==1.4.1
 todoist==0.0.1
 todoist-python==0.2.24
 virtualenv==15.0.2
