@@ -28,40 +28,41 @@ def webhook():
                 if ('message' in m) and ('text' in m['message']):
                     sender_id = m['sender']['id']
                     message = m['message']['text']
-                    resp_mess = {
-                        'recipient': {
-                            'id': sender_id
-                        },
-                        'message': {
-                            'text': get_response(message),
+                    responses = get_responses(message)
+                    for response in responses:
+                        resp_mess = {
+                            'recipient': {
+                                'id': sender_id
+                            },
+                            'message': {
+                                'text': response,
+                            }
                         }
-                    }
-                    fb_response = requests.post(
-                        FB_MESSAGES_ENDPOINT,
-                        params={'access_token': APP_TOKEN},
-                        data=json.dumps(resp_mess),
-                        headers={'content-type': 'application/json'})
-                    if not fb_response.ok:
-                        print 'Not ok. %s: %s' % (
-                            fb_response.status_code,
-                            fb_response.text
-                        )
+                        fb_response = requests.post(
+                            FB_MESSAGES_ENDPOINT,
+                            params={'access_token': APP_TOKEN},
+                            data=json.dumps(resp_mess),
+                            headers={'content-type': 'application/json'})
+                        if not fb_response.ok:
+                            print 'Not ok. %s: %s' % (
+                                fb_response.status_code,
+                                fb_response.text
+                            )
         return "OK", 200
 
 
-def get_response(message):
+def get_responses(message):
     tc = TodoistClient(TOKEN)
     if message == 'tasks':
-        return '\n'.join(
-            ['* {0}'.format(task) for task in tc.get_this_week_tasks()]
-        )
+        return ['* {0}'.format(task) for task in tc.get_this_week_tasks()]
     elif 'write task' in message:
         task_name = message.split('\"')[1]
         date_string = message.split('\"')[3]
         tc.write_task(task_name, 'Inbox', date_string=date_string)
+        return ['Task written.']
     else:
-        return 'Type \'tasks\' to get your tasks for the next week. \
-        Type \'write task \"<task_name>\" due \"<date_string>\"\''
+        return ['Type \'tasks\' to get your tasks for the next week. \
+        Type \'write task \"<task_name>\" due \"<date_string>\"\'']
 
 
 if __name__ == "__main__":
