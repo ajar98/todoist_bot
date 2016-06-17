@@ -28,14 +28,15 @@ def webhook():
                 if ('message' in m) and ('text' in m['message']):
                     sender_id = m['sender']['id']
                     message = m['message']['text']
-                    responses = get_responses(message)
-                    for response in responses:
+                    bot_responses = get_bot_responses(message)
+                    for bot_response in bot_responses:
+                        print bot_response
                         resp_mess = {
                             'recipient': {
                                 'id': sender_id
                             },
                             'message': {
-                                'text': response,
+                                'text': bot_response,
                             }
                         }
                         fb_response = requests.post(
@@ -51,7 +52,7 @@ def webhook():
         return "OK", 200
 
 
-def get_responses(message):
+def get_bot_responses(message):
     tc = TodoistClient(TOKEN)
     if message == 'tasks':
         return ['* {0}'.format(task) for task in tc.get_this_week_tasks()]
