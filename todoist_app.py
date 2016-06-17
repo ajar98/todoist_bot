@@ -55,7 +55,7 @@ def webhook():
 def get_bot_responses(message):
     tc = TodoistClient(TOKEN)
     if message == 'tasks':
-        return ['* {0}'.format(task) for task in tc.get_this_week_tasks()]
+        return ['* {0} (Due {1})'.format(task['content'], task['date_string']) for task in tc.get_this_week_tasks()]
     elif 'write task' in message:
         task_name = message.split('\"')[1]
         date_string = message.split('\"')[3]
