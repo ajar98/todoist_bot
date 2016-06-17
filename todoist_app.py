@@ -32,12 +32,12 @@ def webhook():
                             'id': sender_id
                         },
                         'message': {
-                            'text': '{0} to you!'.format(message),
+                            'text': get_response(message),
                         }
                     }
                     fb_response = requests.post(
                         FB_MESSAGES_ENDPOINT,
-                        params={"access_token": APP_TOKEN},
+                        params={'access_token': APP_TOKEN},
                         data=json.dumps(resp_mess),
                         headers={'content-type': 'application/json'})
                     if not fb_response.ok:
@@ -46,6 +46,22 @@ def webhook():
                             fb_response.text
                         )
         return "OK", 200
+
+
+def get_response(message):
+    tc = TodoistClient()
+    if message == 'tasks':
+        return '\n'.join(
+            ['* {0}'.format(task) for task in tc.get_this_week_tasks()]
+        )
+    elif 'write task' in message:
+        task_name = message.split('\"')[1]
+        date_string = message.split('\"')[3]
+        tc.write_task(task_name, 'Inbox', date_string=date_string)
+    else:
+        return 'Type \'tasks\' to get your tasks for the next week. \
+        Type \'write task \"<task_name>\" due \"<date_string>\"\''
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
