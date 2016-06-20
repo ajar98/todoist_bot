@@ -93,7 +93,10 @@ def todoist_callback(methods=['GET', 'POST']):
 
 
 def get_token(code):
-    client_auth = requests.auth.HTTPBasicAuth(CLIENT_ID, CLIENT_SECRET)
+    client_auth = requests.auth.HTTPBasicAuth(
+        os.environ['TODOIST_CLIENT_ID'],
+        os.environ['TODOIST_CLIENT_SECRET']
+    )
     post_data = {"grant_type": "authorization_code",
                  "code": code,
                  "redirect_uri": REDIRECT_URI}
