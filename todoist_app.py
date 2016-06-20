@@ -61,7 +61,7 @@ def get_bot_responses(message):
 def get_access_token():
     authorization_url = OAUTH_ENDPOINT + \
         urllib.urlencode(
-            'client_id': client.CLIENT_ID,
+            'client_id': os.environ['TODOIST_CLIENT_ID'],
             'scope': 'data:read_write,date:delete',
             'state': uuid4()
         )
