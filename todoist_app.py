@@ -17,7 +17,7 @@ FB_MESSAGES_ENDPOINT = "https://graph.facebook.com/v2.6/me/messages"
 OAUTH_CODE_ENDPOINT = "https://todoist.com/oauth/authorize"
 OAUTH_ACCESS_TOKEN_ENDPOINT = "https://todoist.com/oauth/access_token"
 TODOIST_ACCESS_TOKEN = None
-REDIRECT_URI = "https://www.pure-hamlet-63323.herokuapp.com/todoist_callback"
+REDIRECT_URI = "https://pure-hamlet-63323.herokuapp.com/todoist_callback"
 
 
 @app.route('/webhook', methods=['GET', 'POST'])
@@ -83,13 +83,14 @@ def get_access_token(sender_id):
 
 @app.route('/todoist_callback')
 def todoist_callback(methods=['GET', 'POST']):
-    error = request.args.get('error', '')
-    if error:
-        return "Error: " + error
-    state = request.args.get('state', '')
-    code = request.args.get('code')
-    # We'll change this next line in just a moment
-    TODOIST_ACCESS_TOKEN = get_token(code)
+    if request.method == 'POST':
+        error = request.args.get('error', '')
+        if error:
+            return "Error: " + error
+        state = request.args.get('state', '')
+        code = request.args.get('code')
+        # We'll change this next line in just a moment
+        TODOIST_ACCESS_TOKEN = get_token(code)
 
 
 def get_token(code):
