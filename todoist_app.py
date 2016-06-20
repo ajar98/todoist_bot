@@ -35,7 +35,6 @@ def webhook():
                 if ('message' in m) and ('text' in m['message']):
                     sender_id = m['sender']['id']
                     message = m['message']['text']
-                    print os.environ
                     if not(TODOIST_ACCESS_TOKEN):
                         get_access_token(sender_id)
                     if TODOIST_ACCESS_TOKEN:
@@ -94,16 +93,13 @@ def todoist_callback(methods=['GET']):
 
 
 def get_token(code):
-    client_auth = requests.auth.HTTPBasicAuth(
-        os.environ['TODOIST_CLIENT_ID'],
-        os.environ['TODOIST_CLIENT_SECRET']
+    response = requests.post(
+        OAUTH_ACCESS_TOKEN_ENDPOINT,
+        client_id=os.environ['TODOIST_CLIENT_ID'],
+        client_secret=os.environ['TODOIST_CLIENT_SECRET'],
+        code=code,
+        redirect_uri=REDIRECT_URI
     )
-    post_data = {"grant_type": "authorization_code",
-                 "code": code,
-                 "redirect_uri": REDIRECT_URI}
-    response = requests.post(OAUTH_ACCESS_TOKEN_ENDPOINT,
-                             auth=client_auth,
-                             data=post_data)
     print response.text
     token_json = response.json()
     return token_json["access_token"]
