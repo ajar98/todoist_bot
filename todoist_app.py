@@ -104,6 +104,7 @@ def get_token(code):
     response = requests.post(OAUTH_ACCESS_TOKEN_ENDPOINT,
                              auth=client_auth,
                              data=post_data)
+    print response
     token_json = response.json()
     return token_json["access_token"]
 
