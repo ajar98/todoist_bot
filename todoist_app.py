@@ -43,7 +43,7 @@ def webhook():
 
 def get_bot_responses(sender_id, message):
     while not(TODOIST_ACCESS_TOKEN):
-        get_access_token()
+        get_access_token(sender_id)
     tc = TodoistClient(TODOIST_ACCESS_TOKEN)
     if message == 'tasks':
         return ['* {0} (Due {1})'.format(
