@@ -111,7 +111,7 @@ def send_FB_button(text, button_text, web_url):
                 'type': 'template',
                 'payload': {
                     'template_type': 'button',
-                    'text': text
+                    'text': text,
                     'buttons': [
                         {
                             'type': 'web_url',
