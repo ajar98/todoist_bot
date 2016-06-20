@@ -61,9 +61,11 @@ def get_bot_responses(message):
 def get_access_token():
     authorization_url = OAUTH_ENDPOINT + \
         urllib.urlencode(
-            'client_id': os.environ['TODOIST_CLIENT_ID'],
-            'scope': 'data:read_write,date:delete',
-            'state': uuid4()
+            {
+                'client_id': os.environ['TODOIST_CLIENT_ID'],
+                'scope': 'data:read_write,date:delete',
+                'state': uuid4()
+            }
         )
     send_FB_button(
         'Looks like you haven\'t authorized Todoist.',
