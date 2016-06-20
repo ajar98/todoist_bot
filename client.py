@@ -13,6 +13,7 @@ from datetime import timedelta
 
 TOKEN = 'e5d57a2cbb3a10c236c78eba3d578e18f875a4ee'
 CLIENT_ID = '93dfc816f26f43c2861e369a22fb7ce0'
+CLIENT_SECRET = 'a4f4ae0f1b524279b60914e2ce7fc4af'
 INBOX_PROJECT_ID = 147001862
 
 ID_LENGTH = 20
