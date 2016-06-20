@@ -82,8 +82,8 @@ def get_access_token(sender_id):
 
 
 @app.route('/todoist_callback')
-def todoist_callback(methods=['GET', 'POST']):
-    if request.method == 'POST':
+def todoist_callback(methods=['GET']):
+    if request.method == 'GET':
         error = request.args.get('error', '')
         if error:
             return "Error: " + error
