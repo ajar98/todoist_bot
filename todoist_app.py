@@ -37,7 +37,7 @@ def webhook():
                     bot_responses = get_bot_responses(message)
                     for bot_response in bot_responses:
                         print bot_response
-                        send_FB_text(bot_response)
+                        send_FB_text(sender_id, bot_response)
         return "OK", 200
 
 
@@ -75,10 +75,10 @@ def get_access_token():
     )
 
 
-def send_FB_message(message):
+def send_FB_message(sender_id, message):
     fb_response = requests.post(
         FB_MESSAGES_ENDPOINT,
-        params={'access_token': APP_TOKEN},
+        params={'access_token': os.environ['FB_APP_TOKEN']},
         data=json.dumps(
             {
                 'recipient': {
@@ -97,8 +97,9 @@ def send_FB_message(message):
         print "OK: {0}".format(200)
 
 
-def send_FB_text(text):
+def send_FB_text(sender_id, text):
     return send_FB_message(
+        sender_id,
         {
             'text': text
         }
@@ -107,6 +108,7 @@ def send_FB_text(text):
 
 def send_FB_button(text, button_text, web_url):
     return send_FB_message(
+        sender_id,
         {
             'attachment': {
                 'type': 'template',
