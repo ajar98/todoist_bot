@@ -68,6 +68,7 @@ def get_access_token(sender_id):
             {
                 'client_id': os.environ['TODOIST_CLIENT_ID'],
                 'scope': 'data:read_write,date:delete',
+                'redirect_uri': REDIRECT_URI,
                 'state': uuid4()
             }
         )
