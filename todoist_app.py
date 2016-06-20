@@ -4,6 +4,7 @@ import json
 import requests
 import urllib
 import requests.auth
+import os
 from client import TodoistClient
 from uuid import uuid4
 
@@ -127,6 +128,7 @@ def send_FB_button(text, button_text, web_url):
 
 @app.route('/todoist_callback')
 def todoist_callback(methods=['GET', 'POST']):
+    print request.data
     if 'access_token' in request.data:
         TODOIST_ACCESS_TOKEN = request.data['access_token']
 
