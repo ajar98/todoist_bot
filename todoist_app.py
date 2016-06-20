@@ -14,7 +14,7 @@ APP_TOKEN = "EAAPGnoxDIZC8BAGJC26eKJnuOsHO95ZCqmDvxOY0OoLHUSjecSsZBUObB\
 PYjpLhLzjjv8MdWrSvsYZAAkG6XO3Vx9S54OYHZCFe7nV04pBBhyYK8VPwehszO44W57l6s\
 EbTemYEO4cesUW19ZB2GxAZB1CJuaguPfqlmrtLCzlplgZDZD"
 FB_MESSAGES_ENDPOINT = "https://graph.facebook.com/v2.6/me/messages"
-OAUTH_CODE_ENDPOINT = "https://todoist.com/oauth/authorize?"
+OAUTH_CODE_ENDPOINT = "https://todoist.com/oauth/authorize"
 OAUTH_ACCESS_TOKEN_ENDPOINT = "https://todoist.com/oauth/access_token"
 TODOIST_ACCESS_TOKEN = None
 REDIRECT_URI = "https://www.pure-hamlet-63323.herokuapp.com/todoist_callback"
@@ -38,45 +38,46 @@ def webhook():
                     print os.environ
                     if not(TODOIST_ACCESS_TOKEN):
                         get_access_token(sender_id)
-                    bot_responses = get_bot_responses(sender_id, message)
-                    for bot_response in bot_responses:
-                        print bot_response
-                        send_FB_text(sender_id, bot_response)
+                    if TODOIST_ACCESS_TOKEN:
+                        bot_responses = get_bot_responses(sender_id, message)
+                        for bot_response in bot_responses:
+                            print bot_response
+                            send_FB_text(sender_id, bot_response)
         return "OK", 200
 
 
 def get_bot_responses(sender_id, message):
-    if TODOIST_ACCESS_TOKEN:
-        tc = TodoistClient(TODOIST_ACCESS_TOKEN)
-        if message.lower() == 'tasks':
-            return ['* {0} (Due {1})'.format(
-                task['content'],
-                task['date_string']) for task in tc.get_this_week_tasks()]
-        elif 'write task' in message:
-            task_name = message.split('\"')[1]
-            date_string = message.split('\"')[3]
-            tc.write_task(task_name, 'Inbox', date_string=date_string)
-            return ['Task written.']
-        else:
-            return ['Type \'tasks\' to get your tasks for the next week. \
-            Type \'write task \"<task_name>\" due \"<date_string>\"\'']
+    tc = TodoistClient(TODOIST_ACCESS_TOKEN)
+    if message.lower() == 'tasks':
+        return ['* {0} (Due {1})'.format(
+            task['content'],
+            task['date_string']) for task in tc.get_this_week_tasks()]
+    elif 'write task' in message:
+        task_name = message.split('\"')[1]
+        date_string = message.split('\"')[3]
+        tc.write_task(task_name, 'Inbox', date_string=date_string)
+        return ['Task written.']
+    else:
+        return ['Type \'tasks\' to get your tasks for the next week. \
+        Type \'write task \"<task_name>\" due \"<date_string>\"\'']
 
 
 def get_access_token(sender_id):
-    authorization_url = OAUTH_CODE_ENDPOINT + \
-        urllib.urlencode(
-            {
-                'client_id': os.environ['TODOIST_CLIENT_ID'],
-                'scope': 'data:read_write,date:delete',
-                'redirect_uri': REDIRECT_URI,
-                'state': uuid4()
-            }
-        )
     send_FB_button(
         sender_id,
         'Looks like you haven\'t authorized Todoist.',
         'Authorize now',
-        authorization_url
+        '{0}?{1}'.format(
+            OAUTH_CODE_ENDPOINT,
+            urllib.urlencode(
+                {
+                    'client_id': os.environ['TODOIST_CLIENT_ID'],
+                    'scope': 'data:read_write,data:delete',
+                    'redirect_uri': REDIRECT_URI,
+                    'state': uuid4()
+                }
+            )
+        )
     )
 
 
@@ -86,9 +87,6 @@ def todoist_callback(methods=['GET', 'POST']):
     if error:
         return "Error: " + error
     state = request.args.get('state', '')
-    if not is_valid_state(state):
-        # Uh-oh, this request wasn't started by us!
-        abort(403)
     code = request.args.get('code')
     # We'll change this next line in just a moment
     TODOIST_ACCESS_TOKEN = get_token(code)
