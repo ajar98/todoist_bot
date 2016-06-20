@@ -35,6 +35,7 @@ def webhook():
                 if ('message' in m) and ('text' in m['message']):
                     sender_id = m['sender']['id']
                     message = m['message']['text']
+                    print os.environ
                     if not(TODOIST_ACCESS_TOKEN):
                         get_access_token(sender_id)
                     bot_responses = get_bot_responses(sender_id, message)
@@ -47,7 +48,7 @@ def webhook():
 def get_bot_responses(sender_id, message):
     if TODOIST_ACCESS_TOKEN:
         tc = TodoistClient(TODOIST_ACCESS_TOKEN)
-        if message == 'tasks':
+        if message.lower() == 'tasks':
             return ['* {0} (Due {1})'.format(
                 task['content'],
                 task['date_string']) for task in tc.get_this_week_tasks()]
