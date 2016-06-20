@@ -34,14 +34,14 @@ def webhook():
                 if ('message' in m) and ('text' in m['message']):
                     sender_id = m['sender']['id']
                     message = m['message']['text']
-                    bot_responses = get_bot_responses(message)
+                    bot_responses = get_bot_responses(sender_id, message)
                     for bot_response in bot_responses:
                         print bot_response
                         send_FB_text(sender_id, bot_response)
         return "OK", 200
 
 
-def get_bot_responses(message):
+def get_bot_responses(sender_id, message):
     while not(TODOIST_ACCESS_TOKEN):
         get_access_token()
     tc = TodoistClient(TODOIST_ACCESS_TOKEN)
@@ -59,7 +59,7 @@ def get_bot_responses(message):
         Type \'write task \"<task_name>\" due \"<date_string>\"\'']
 
 
-def get_access_token():
+def get_access_token(sender_id):
     authorization_url = OAUTH_ENDPOINT + \
         urllib.urlencode(
             {
@@ -69,6 +69,7 @@ def get_access_token():
             }
         )
     send_FB_button(
+        sender_id,
         'Looks like you haven\'t authorized Todoist.',
         'Authorize now',
         authorization_url
@@ -106,7 +107,7 @@ def send_FB_text(sender_id, text):
     )
 
 
-def send_FB_button(text, button_text, web_url):
+def send_FB_button(sender_id, text, button_text, web_url):
     return send_FB_message(
         sender_id,
         {
