@@ -90,6 +90,7 @@ def todoist_callback(methods=['GET']):
         code = request.args.get('code')
         # We'll change this next line in just a moment
         TODOIST_ACCESS_TOKEN = get_token(code)
+        return "success" if TODOIST_ACCESS_TOKEN else "failure"
 
 
 def get_token(code):
@@ -103,7 +104,6 @@ def get_token(code):
         OAUTH_ACCESS_TOKEN_ENDPOINT,
         data=post_data
     )
-    print response.text
     token_json = response.json()
     return token_json["access_token"]
 
