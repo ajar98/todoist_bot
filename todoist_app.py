@@ -93,12 +93,15 @@ def todoist_callback(methods=['GET']):
 
 
 def get_token(code):
+    post_data = {
+        'client_id': os.environ['TODOIST_CLIENT_ID'],
+        'client_secret': os.environ['TODOIST_CLIENT_SECRET'],
+        'code': code,
+        'redirect_uri': REDIRECT_URI
+    }
     response = requests.post(
         OAUTH_ACCESS_TOKEN_ENDPOINT,
-        client_id=os.environ['TODOIST_CLIENT_ID'],
-        client_secret=os.environ['TODOIST_CLIENT_SECRET'],
-        code=code,
-        redirect_uri=REDIRECT_URI
+        data=post_data
     )
     print response.text
     token_json = response.json()
