@@ -14,7 +14,7 @@ APP_TOKEN = "EAAPGnoxDIZC8BAGJC26eKJnuOsHO95ZCqmDvxOY0OoLHUSjecSsZBUObB\
 PYjpLhLzjjv8MdWrSvsYZAAkG6XO3Vx9S54OYHZCFe7nV04pBBhyYK8VPwehszO44W57l6s\
 EbTemYEO4cesUW19ZB2GxAZB1CJuaguPfqlmrtLCzlplgZDZD"
 FB_MESSAGES_ENDPOINT = "https://graph.facebook.com/v2.6/me/messages"
-OAUTH_ENDPOINT = "https://todoist.com/oauth/authorize"
+OAUTH_ENDPOINT = "https://todoist.com/oauth/authorize?"
 TODOIST_ACCESS_TOKEN = None
 REDIRECT_URI = "https://www.pure-hamlet-63323.herokuapp.com/todoist_callback"
 
