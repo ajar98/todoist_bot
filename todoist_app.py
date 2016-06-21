@@ -27,18 +27,15 @@ def webhook():
             return 'Wrong validation token'
     else:
         if request.method == 'POST':
-            if not('TODOIST_ACCESS_TOKENS' in os.environ):
-                os.environ['TODOIST_ACCESS_TOKENS'] = dict()
             data = json.loads(request.data)['entry'][0]['messaging']
             for m in data:
                 print m
                 if ('message' in m) and ('text' in m['message']):
                     sender_id = m['sender']['id']
                     message = m['message']['text']
-                    if not(sender_id in os.environ['TODOIST_ACCESS_TOKENS']):
+                    if not(sender_id in os.environ):
                         get_access_token(sender_id)
-                    print os.environ['TODOIST_ACCESS_TOKENS']
-                    if sender_id in os.environ['TODOIST_ACCESS_TOKENS']:
+                    if sender_id in os.environ:
                         bot_responses = get_bot_responses(sender_id, message)
                         for bot_response in bot_responses:
                             print bot_response
@@ -47,7 +44,7 @@ def webhook():
 
 
 def get_bot_responses(sender_id, message):
-    tc = TodoistClient(os.environ['TODOIST_ACCESS_TOKENS'])
+    tc = TodoistClient(os.environ[sender_id])
     if message.lower() == 'tasks':
         return ['* {0} (Due {1})'.format(
             task['content'],
@@ -91,10 +88,10 @@ def todoist_callback(methods=['GET']):
         state = request.args.get('state', '')
         code = request.args.get('code')
         # We'll change this next line in just a moment
-        TODOIST_ACCESS_TOKEN = get_token(code)
-        os.environ['TODOIST_ACCESS_TOKENS'][my_sender_id] = \
-            TODOIST_ACCESS_TOKEN
-        return "success" if TODOIST_ACCESS_TOKEN else "failure"
+        access_token = get_token(code)
+        os.environ[my_sender_id] = \
+            access_token
+        return "success" if access_token else "failure"
 
 
 def get_token(code):
