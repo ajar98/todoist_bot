@@ -15,8 +15,6 @@ OAUTH_CODE_ENDPOINT = "https://todoist.com/oauth/authorize"
 OAUTH_ACCESS_TOKEN_ENDPOINT = "https://todoist.com/oauth/access_token"
 REDIRECT_URI = "http://pure-hamlet-63323.herokuapp.com/todoist_callback"
 
-my_sender_id = None
-
 
 @app.route('/webhook', methods=['GET', 'POST'])
 def webhook():
@@ -60,7 +58,7 @@ def get_bot_responses(sender_id, message):
 
 
 def get_access_token(sender_id):
-    my_sender_id = sender_id
+    os.environ[sender_id] = 'temp'
     send_FB_button(
         sender_id,
         'Looks like you haven\'t authorized Todoist.',
@@ -89,9 +87,10 @@ def todoist_callback(methods=['GET']):
         code = request.args.get('code')
         # We'll change this next line in just a moment
         access_token = get_token(code)
-        print access_token
-        os.environ[my_sender_id] = \
-            access_token
+        print "Access token: {0}".format(access_token)
+        for key,value in os.environ:
+            if value == 'temp':
+                os.environ[key] = access_token
         return "success" if access_token else "failure"
 
 
