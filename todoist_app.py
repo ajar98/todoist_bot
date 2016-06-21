@@ -62,6 +62,8 @@ def get_bot_responses(sender_id, message):
 
 def get_access_token(sender_id):
     my_sender_id = sender_id
+    print sender_id
+    print my_sender_id
     send_FB_button(
         sender_id,
         'Looks like you haven\'t authorized Todoist.',
