@@ -89,6 +89,7 @@ def todoist_callback(methods=['GET']):
         code = request.args.get('code')
         # We'll change this next line in just a moment
         access_token = get_token(code)
+        print access_token
         os.environ[my_sender_id] = \
             access_token
         return "success" if access_token else "failure"
