@@ -88,7 +88,7 @@ def todoist_callback(methods=['GET']):
         # We'll change this next line in just a moment
         access_token = get_token(code)
         print "Access token: {0}".format(access_token)
-        for key,value in os.environ:
+        for key, value in os.environ.items():
             if value == 'temp':
                 os.environ[key] = access_token
         return "success" if access_token else "failure"
