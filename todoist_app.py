@@ -10,14 +10,12 @@ from uuid import uuid4
 
 app = Flask(__name__)
 
-APP_TOKEN = "EAAPGnoxDIZC8BAGJC26eKJnuOsHO95ZCqmDvxOY0OoLHUSjecSsZBUObB\
-PYjpLhLzjjv8MdWrSvsYZAAkG6XO3Vx9S54OYHZCFe7nV04pBBhyYK8VPwehszO44W57l6s\
-EbTemYEO4cesUW19ZB2GxAZB1CJuaguPfqlmrtLCzlplgZDZD"
 FB_MESSAGES_ENDPOINT = "https://graph.facebook.com/v2.6/me/messages"
 OAUTH_CODE_ENDPOINT = "https://todoist.com/oauth/authorize"
 OAUTH_ACCESS_TOKEN_ENDPOINT = "https://todoist.com/oauth/access_token"
-TODOIST_ACCESS_TOKEN = None
 REDIRECT_URI = "http://pure-hamlet-63323.herokuapp.com/todoist_callback"
+
+my_sender_id = None
 
 
 @app.route('/webhook', methods=['GET', 'POST'])
@@ -35,9 +33,10 @@ def webhook():
                 if ('message' in m) and ('text' in m['message']):
                     sender_id = m['sender']['id']
                     message = m['message']['text']
-                    if not(TODOIST_ACCESS_TOKEN):
+                    if not(sender_id in os.environ['TODOIST_ACCESS_TOKENS']):
                         get_access_token(sender_id)
-                    if TODOIST_ACCESS_TOKEN:
+                    print os.environ['TODOIST_ACCESS_TOKENS']
+                    if sender_id in os.environ['TODOIST_ACCESS_TOKENS']:
                         bot_responses = get_bot_responses(sender_id, message)
                         for bot_response in bot_responses:
                             print bot_response
@@ -46,7 +45,7 @@ def webhook():
 
 
 def get_bot_responses(sender_id, message):
-    tc = TodoistClient(TODOIST_ACCESS_TOKEN)
+    tc = TodoistClient(os.environ['TODOIST_ACCESS_TOKENS'])
     if message.lower() == 'tasks':
         return ['* {0} (Due {1})'.format(
             task['content'],
@@ -62,6 +61,7 @@ def get_bot_responses(sender_id, message):
 
 
 def get_access_token(sender_id):
+    my_sender_id = sender_id
     send_FB_button(
         sender_id,
         'Looks like you haven\'t authorized Todoist.',
@@ -90,6 +90,7 @@ def todoist_callback(methods=['GET']):
         code = request.args.get('code')
         # We'll change this next line in just a moment
         TODOIST_ACCESS_TOKEN = get_token(code)
+        os.environ['TODOIST_ACCESS_TOKEN'][my_sender_id] = TODOIST_ACCESS_TOKEN
         return "success" if TODOIST_ACCESS_TOKEN else "failure"
 
 
