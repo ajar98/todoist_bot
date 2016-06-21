@@ -90,8 +90,11 @@ def todoist_callback(methods=['GET']):
         code = request.args.get('code')
         # We'll change this next line in just a moment
         TODOIST_ACCESS_TOKEN = get_token(code)
-        os.environ['TODOIST_ACCESS_TOKENS'][my_sender_id] = \
-            TODOIST_ACCESS_TOKEN
+        os.environ['TODOIST_ACCESS_TOKENS'] = \
+            updateDict(
+                os.environ['TODOIST_ACCESS_TOKENS'],
+                {my_sender_id: TODOIST_ACCESS_TOKEN}
+            )
         return "success" if TODOIST_ACCESS_TOKEN else "failure"
 
 
@@ -161,6 +164,12 @@ def send_FB_button(sender_id, text, button_text, web_url):
             }
         }
     )
+
+
+def updateDict(old_dict, update):
+    new_dict = old_dict
+    new_dict.update(update)
+    return new_dict
 
 
 if __name__ == "__main__":
