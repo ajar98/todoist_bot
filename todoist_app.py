@@ -62,8 +62,6 @@ def get_bot_responses(sender_id, message):
 
 def get_access_token(sender_id):
     my_sender_id = sender_id
-    print sender_id
-    print my_sender_id
     send_FB_button(
         sender_id,
         'Looks like you haven\'t authorized Todoist.',
@@ -92,7 +90,8 @@ def todoist_callback(methods=['GET']):
         code = request.args.get('code')
         # We'll change this next line in just a moment
         TODOIST_ACCESS_TOKEN = get_token(code)
-        os.environ['TODOIST_ACCESS_TOKEN'][my_sender_id] = TODOIST_ACCESS_TOKEN
+        os.environ['TODOIST_ACCESS_TOKENS'][my_sender_id] = \
+            TODOIST_ACCESS_TOKEN
         return "success" if TODOIST_ACCESS_TOKEN else "failure"
 
 
