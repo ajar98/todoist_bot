@@ -47,6 +47,7 @@ def webhook():
                         get_access_token(sender_id)
                     sender_id_matches = [x for x in handle.access_tokens.find(
                         {'sender_id': sender_id})]
+                    print sender_id_matches
                     if sender_id_matches:
                         bot_responses = get_bot_responses(
                             sender_id_matches[0]['access_token'],
