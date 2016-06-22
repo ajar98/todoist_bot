@@ -22,3 +22,4 @@ virtualenv==15.0.2
 Werkzeug==0.11.10
 xattr==0.6.4
 zope.interface==4.1.1
+pymongo==3.2.2

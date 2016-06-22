@@ -7,13 +7,23 @@ import requests.auth
 import os
 from client import TodoistClient
 from uuid import uuid4
-
-app = Flask(__name__)
+from pymongo import MongoClient
 
 FB_MESSAGES_ENDPOINT = "https://graph.facebook.com/v2.6/me/messages"
 OAUTH_CODE_ENDPOINT = "https://todoist.com/oauth/authorize"
 OAUTH_ACCESS_TOKEN_ENDPOINT = "https://todoist.com/oauth/access_token"
 REDIRECT_URI = "http://pure-hamlet-63323.herokuapp.com/todoist_callback"
+
+
+def connect():
+    connection = MongoClient("ds021434.mlab.com", 21434)
+    handle = connection["todoist_access_tokens"]
+    handle.authenticate("chatbot", "weaboo")
+    return handle
+
+
+app = Flask(__name__)
+handle = connect()
 
 
 @app.route('/webhook', methods=['GET', 'POST'])
@@ -31,18 +41,25 @@ def webhook():
                 if ('message' in m) and ('text' in m['message']):
                     sender_id = m['sender']['id']
                     message = m['message']['text']
-                    if not(sender_id in os.environ):
+                    if handle.access_tokens.find(
+                        {'sender_id': sender_id}
+                    ).count() == 0:
                         get_access_token(sender_id)
-                    if sender_id in os.environ:
-                        bot_responses = get_bot_responses(sender_id, message)
+                    sender_id_matches = [x for x in handle.access_tokens.find(
+                        {'sender_id': sender_id})]
+                    if sender_id_matches:
+                        bot_responses = get_bot_responses(
+                            sender_id_matches[0]['access_token'],
+                            message
+                        )
                         for bot_response in bot_responses:
                             print bot_response
                             send_FB_text(sender_id, bot_response)
         return "OK", 200
 
 
-def get_bot_responses(sender_id, message):
-    tc = TodoistClient(os.environ[sender_id])
+def get_bot_responses(access_token, message):
+    tc = TodoistClient(access_token)
     if message.lower() == 'tasks':
         return ['* {0} (Due {1})'.format(
             task['content'],
@@ -58,7 +75,12 @@ def get_bot_responses(sender_id, message):
 
 
 def get_access_token(sender_id):
-    os.environ[sender_id] = 'temp'
+    handle.access_tokens.insert(
+        {
+            'sender_id': sender_id,
+            'access_token': 'temp'
+        }
+    )
     send_FB_button(
         sender_id,
         'Looks like you haven\'t authorized Todoist.',
@@ -88,10 +110,18 @@ def todoist_callback(methods=['GET']):
         # We'll change this next line in just a moment
         access_token = get_token(code)
         print "Access token: {0}".format(access_token)
-        for key, value in os.environ.items():
-            if value == 'temp':
-                os.environ[key] = access_token
-        return "success" if access_token else "failure"
+        handle.access_tokens.update(
+            {'access_token': 'temp'},
+            {
+                '$set': {
+                    'access_token': access_token
+                }
+            }
+        )
+        return "success" if access_token and \
+            handle.access_tokens.find(
+                {'access_token': access_token}
+            ).count() else "failure"
 
 
 def get_token(code):
