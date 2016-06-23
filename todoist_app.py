@@ -53,11 +53,17 @@ def webhook():
                         if ' due ' in message:
                             task_name = message.split(' due ')[0]
                             date_string = message.split(' due ')[1]
-                            tc.write_task(
-                                task_name,
-                                'Inbox',
-                                date_string=date_string
-                            )
+                            if date_string == 'never':
+                                tc.write_task(
+                                    task_name,
+                                    'Inbox',
+                                )
+                            else:
+                                tc.write_task(
+                                    task_name,
+                                    'Inbox',
+                                    date_string=date_string
+                                )
                         else:
                             send_FB_buttons(
                                 sender_id,
