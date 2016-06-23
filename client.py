@@ -5,6 +5,7 @@ import string
 from dateutil.parser import parse
 import datetime
 from datetime import timedelta
+from uuid import uuid4
 
 # implement labels
 # create a new project
@@ -54,6 +55,13 @@ class TodoistClient():
 
     def write_inbox_task(self, task_name):
         return self.write_task(task_name, "Inbox")
+
+    def complete_task(self, task_id):
+        self.api.sync(
+            commands=[
+                {'type': 'item_complete', 'uuid': uuid4().__str__(), 'args': {'ids': [task_id]}}
+            ]
+        )
 
     def get_today_tasks(self):
         return self.get_tasks_up_to_date(datetime.date.today())
@@ -115,4 +123,4 @@ class WriteTask(Command):
 
 if __name__ == '__main__':
     tc = TodoistClient(TOKEN)
-    print json.dumps(tc.get_this_week_tasks(), indent=4)
+    print tc.api.sync(commands=[{'type': 'item_complete', 'uuid': uuid4().__str__(), 'args': {'ids': [44157038]}}])

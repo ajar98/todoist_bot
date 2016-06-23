@@ -109,7 +109,7 @@ def webhook():
                             task_id = payload.split(':')[1]
                             print task_id
                             print tc.api.items.get_by_id(task_id)
-                            tc.api.items.get_by_id(task_id).complete()
+                            tc.complete_task(task_id)
                             send_FB_text(sender_id, 'Task completed.')
         return "OK", 200
 
