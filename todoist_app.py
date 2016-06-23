@@ -82,6 +82,7 @@ def webhook():
                         {'sender_id': sender_id})]
                     if sender_id_matches:
                         access_token = sender_id_matches[0]['access_token']
+                        print access_token
                         tc = TodoistClient(access_token)
                         payload = m['postback']['payload']
                         if payload == 'tasks':
