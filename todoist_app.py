@@ -66,15 +66,48 @@ def webhook():
                                 }
                             ],
                         )
-                        bot_responses = get_bot_responses(
-                            access_token,
-                            message
-                        )
-                        for bot_response in bot_responses:
-                            print bot_response
-                            send_FB_text(sender_id, bot_response)
+                        # bot_responses = get_bot_responses(
+                        #     access_token,
+                        #     message
+                        # )
+                        # for bot_response in bot_responses:
+                        #     print bot_response
+                        #     send_FB_text(sender_id, bot_response)
                 if 'postback' in m:
-                    print m
+                    if handle.access_tokens.find(
+                        {'sender_id': sender_id}
+                    ).count() == 0:
+                        get_access_token(sender_id)
+                    sender_id_matches = [x for x in handle.access_tokens.find(
+                        {'sender_id': sender_id})]
+                    if sender_id_matches:
+                        access_token = sender_id_matches[0]['access_token']
+                        tc = TodoistClient(access_token)
+                        sender_id = m['sender']['id']
+                        payload = m['postback']['payload']
+                        if payload == 'tasks':
+                            this_week_tasks = tc.get_this_week_tasks()
+                            for t in ['* {0} (Due {1})'.format(
+                                task['content'],
+                                task['date_string']
+                            ) for task in this_week_tasks]:
+                                send_FB_buttons(
+                                    sender_id
+                                    t,
+                                    [
+                                        {
+                                            'type': 'postback',
+                                            'title':
+                                            'I\'ve completed this task',
+                                            'payload': {
+                                                'task_id': t['id']
+                                            }
+                                        },
+                                    ]
+                                )
+                        if 'task_id' in payload:
+                            tc.api.items.get_by_id(
+                                payload['task_id']).complete()
         return "OK", 200
 
 
