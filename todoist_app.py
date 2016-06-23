@@ -58,7 +58,7 @@ def webhook():
                                     'type': 'postback',
                                     'title': 'View my tasks',
                                     'payload': 'tasks'
-                                }
+                                },
                                 {
                                     'type': 'postback',
                                     'title': 'Write tasks',
