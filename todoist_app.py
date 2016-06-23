@@ -64,6 +64,7 @@ def webhook():
                                     'Inbox',
                                     date_string=date_string
                                 )
+                            send_FB_text(sender_id, 'Task written.')
                         else:
                             send_FB_buttons(
                                 sender_id,
