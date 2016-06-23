@@ -59,7 +59,13 @@ class TodoistClient():
     def complete_task(self, task_id):
         self.api.sync(
             commands=[
-                {'type': 'item_complete', 'uuid': uuid4().__str__(), 'args': {'ids': [task_id]}}
+                {
+                    'type': 'item_complete',
+                    'uuid': uuid4().__str__(),
+                    'args': {
+                        'ids': [task_id]
+                    }
+                }
             ]
         )
 
