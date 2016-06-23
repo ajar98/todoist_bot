@@ -98,15 +98,16 @@ def webhook():
                                             'type': 'postback',
                                             'title':
                                             'I\'ve completed this task',
-                                            'payload': {
-                                                'task_id': task['id']
-                                            }
+                                            'payload': '{0}:{1}'.format(
+                                                'task_id',
+                                                task['id']
+                                            )
                                         },
                                     ]
                                 )
                         if 'task_id' in payload:
                             tc.api.items.get_by_id(
-                                payload['task_id']).complete()
+                                payload.split(':')[1]).complete()
         return "OK", 200
 
 
