@@ -47,15 +47,34 @@ def webhook():
                         get_access_token(sender_id)
                     sender_id_matches = [x for x in handle.access_tokens.find(
                         {'sender_id': sender_id})]
-                    print sender_id_matches
                     if sender_id_matches:
+                        access_token = sender_id_matches[0]['access_token']
+                        send_FB_buttons(
+                            sender_id,
+                            'Hi there! \
+                            Would you like view your tasks or write tasks?',
+                            [
+                                {
+                                    'type': 'postback',
+                                    'title': 'View my tasks',
+                                    'payload': 'tasks'
+                                }
+                                {
+                                    'type': 'postback',
+                                    'title': 'Write tasks',
+                                    'payload': 'write'
+                                }
+                            ],
+                        )
                         bot_responses = get_bot_responses(
-                            sender_id_matches[0]['access_token'],
+                            access_token,
                             message
                         )
                         for bot_response in bot_responses:
                             print bot_response
                             send_FB_text(sender_id, bot_response)
+                if 'postback' in m:
+                    print m
         return "OK", 200
 
 
@@ -82,21 +101,26 @@ def get_access_token(sender_id):
             'access_token': 'temp'
         }
     )
-    send_FB_button(
+    send_FB_buttons(
         sender_id,
         'Looks like you haven\'t authorized Todoist.',
-        'Authorize now',
-        '{0}?{1}'.format(
-            OAUTH_CODE_ENDPOINT,
-            urllib.urlencode(
-                {
-                    'client_id': os.environ['TODOIST_CLIENT_ID'],
-                    'scope': 'data:read_write,data:delete',
-                    'redirect_uri': REDIRECT_URI,
-                    'state': uuid4()
-                }
-            )
-        )
+        [
+            {
+                'type': 'web_url',
+                'title': 'Authorize now',
+                'url': '{0}?{1}'.format(
+                    OAUTH_CODE_ENDPOINT,
+                    urllib.urlencode(
+                        {
+                            'client_id': os.environ['TODOIST_CLIENT_ID'],
+                            'scope': 'data:read_write,data:delete',
+                            'redirect_uri': REDIRECT_URI,
+                            'state': uuid4()
+                        }
+                    )
+                )
+            }
+        ],
     )
 
 
@@ -171,7 +195,7 @@ def send_FB_text(sender_id, text):
     )
 
 
-def send_FB_button(sender_id, text, button_text, web_url):
+def send_FB_buttons(sender_id, text, buttons):
     return send_FB_message(
         sender_id,
         {
@@ -180,13 +204,7 @@ def send_FB_button(sender_id, text, button_text, web_url):
                 'payload': {
                     'template_type': 'button',
                     'text': text,
-                    'buttons': [
-                        {
-                            'type': 'web_url',
-                            'title': button_text,
-                            'url': web_url
-                        }
-                    ]
+                    'buttons': buttons
                 }
             }
         }
