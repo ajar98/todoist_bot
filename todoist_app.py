@@ -51,8 +51,7 @@ def webhook():
                         access_token = sender_id_matches[0]['access_token']
                         send_FB_buttons(
                             sender_id,
-                            'Hi there! \
-                            Would you like view your tasks or write tasks?',
+                            'Hi there! Would you like view your tasks or write tasks?',
                             [
                                 {
                                     'type': 'postback',
@@ -86,21 +85,20 @@ def webhook():
                         sender_id = m['sender']['id']
                         payload = m['postback']['payload']
                         if payload == 'tasks':
-                            this_week_tasks = tc.get_this_week_tasks()
-                            for t in ['* {0} (Due {1})'.format(
-                                task['content'],
-                                task['date_string']
-                            ) for task in this_week_tasks]:
+                            for task in tc.get_this_week_tasks():
                                 send_FB_buttons(
-                                    sender_id
-                                    t,
+                                    sender_id,
+                                    '* {0} (Due {1})'.format(
+                                        task['content'],
+                                        task['date_string']
+                                    ),
                                     [
                                         {
                                             'type': 'postback',
                                             'title':
                                             'I\'ve completed this task',
                                             'payload': {
-                                                'task_id': t['id']
+                                                'task_id': task['id']
                                             }
                                         },
                                     ]
