@@ -73,6 +73,7 @@ def webhook():
                         #     print bot_response
                         #     send_FB_text(sender_id, bot_response)
                 if 'postback' in m:
+                    sender_id = m['sender']['id']
                     if handle.access_tokens.find(
                         {'sender_id': sender_id}
                     ).count() == 0:
@@ -82,7 +83,6 @@ def webhook():
                     if sender_id_matches:
                         access_token = sender_id_matches[0]['access_token']
                         tc = TodoistClient(access_token)
-                        sender_id = m['sender']['id']
                         payload = m['postback']['payload']
                         if payload == 'tasks':
                             for task in tc.get_this_week_tasks():
