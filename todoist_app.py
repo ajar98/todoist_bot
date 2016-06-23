@@ -97,7 +97,7 @@ def webhook():
                                         {
                                             'type': 'postback',
                                             'title':
-                                            'I\'ve completed this task',
+                                            'Complete',
                                             'payload': '{0}:{1}'.format(
                                                 'task_id',
                                                 task['id']
