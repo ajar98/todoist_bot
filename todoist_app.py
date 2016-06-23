@@ -92,7 +92,7 @@ def webhook():
                             for task in tc.get_this_week_tasks():
                                 send_FB_buttons(
                                     sender_id,
-                                    '• {0} (Due {1})'.format(
+                                    '* {0} (Due {1})'.format(
                                         task['content'],
                                         task['date_string']
                                     ),
