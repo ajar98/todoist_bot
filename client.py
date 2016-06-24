@@ -34,7 +34,7 @@ class TodoistClient():
 
     def get_project_to_id(self, project_name):
         for project in self.sync_response['projects']:
-            if project_name == project['name']:
+            if project_name.lower() == project['name'].lower():
                 return project['id']
         return None
 
@@ -71,6 +71,13 @@ class TodoistClient():
 
     def get_today_tasks(self):
         return self.get_tasks_up_to_date(datetime.date.today())
+
+    def get_project_tasks(self, project_name):
+        project_id = self.get_project_to_id(project_name)
+        return [
+            task for task in self.sync_response['items']
+            if task['project_id'] == project_id
+        ] if project_id else None
 
     def get_this_week_tasks(self):
         return self.get_tasks_up_to_date(datetime.date.today() + timedelta(weeks=1))
@@ -129,4 +136,4 @@ class WriteTask(Command):
 
 if __name__ == '__main__':
     tc = TodoistClient(TOKEN)
-    print tc.api.sync(commands=[{'type': 'item_complete', 'uuid': uuid4().__str__(), 'args': {'ids': [44157038]}}])
+    print json.dumps(tc.get_project_tasks('card citator'), indent=4)

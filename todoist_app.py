@@ -8,6 +8,7 @@ import os
 from client import TodoistClient
 from uuid import uuid4
 from pymongo import MongoClient
+from dateutil.parser import parse
 
 FB_MESSAGES_ENDPOINT = 'https://graph.facebook.com/v2.6/me/messages'
 OAUTH_CODE_ENDPOINT = 'https://todoist.com/oauth/authorize'
@@ -38,7 +39,7 @@ def webhook():
             data = json.loads(request.data)['entry'][0]['messaging']
             for m in data:
                 print m
-                if ('message' in m) and ('text' in m['message']):
+                if 'sender' in m:
                     sender_id = m['sender']['id']
                     message = m['message']['text']
                     if handle.access_tokens.find(
@@ -50,97 +51,113 @@ def webhook():
                     if sender_id_matches:
                         access_token = sender_id_matches[0]['access_token']
                         tc = TodoistClient(access_token)
-                        if ' due ' in message:
-                            task_name = message.split(' due ')[0]
-                            date_string = message.split(' due ')[1]
-                            if date_string == 'never':
-                                tc.write_task(
-                                    task_name,
-                                    'Inbox',
-                                )
+                        if ('message' in m) and ('text' in m['message']):
+                            if 'tasks' in message.lower():
+                                if ' in ' in message.lower():
+                                    project_name = message.lower().split(' in ')[1]
+                                    send_tasks(sender_id, tc.get_project_tasks())
+                                elif ' up to ' in message.lower():
+                                    date_string = message.lower().split(' up to ')[1]
+                                    date = None
+                                    try:
+                                        date = parse(date_string)
+                                    except ValueError:
+                                        send_FB_text(
+                                            sender_id,
+                                            'Date text not recognized. Try using actual dates.'
+                                        )
+                                    if date:
+                                        send_tasks(sender_id, tc.get_tasks_up_to_date(date))
+                                else:
+                                    send_tasks(sender_id, tc.get_this_week_tasks())
+                            elif ' due ' in message:
+                                write_task(sender_id, tc, message)
                             else:
-                                tc.write_task(
-                                    task_name,
-                                    'Inbox',
-                                    date_string=date_string
-                                )
-                            send_FB_text(sender_id, 'Task written.')
-                        else:
-                            send_FB_buttons(
-                                sender_id,
-                                'Hi there! Would you like view your tasks or write tasks?',
-                                [
-                                    {
-                                        'type': 'postback',
-                                        'title': 'View my tasks',
-                                        'payload': 'tasks'
-                                    },
-                                    {
-                                        'type': 'postback',
-                                        'title': 'Write tasks',
-                                        'payload': 'write'
-                                    }
-                                ],
-                            )
-                if 'postback' in m:
-                    sender_id = m['sender']['id']
-                    if handle.access_tokens.find(
-                        {'sender_id': sender_id}
-                    ).count() == 0:
-                        get_access_token(sender_id)
-                    sender_id_matches = [x for x in handle.access_tokens.find(
-                        {'sender_id': sender_id})]
-                    if sender_id_matches:
-                        access_token = sender_id_matches[0]['access_token']
-                        print access_token
-                        tc = TodoistClient(access_token)
-                        payload = m['postback']['payload']
-                        if payload == 'tasks':
-                            for task in tc.get_this_week_tasks():
-                                send_FB_buttons(
-                                    sender_id,
-                                    '* {0} (Due {1})'.format(
-                                        task['content'],
-                                        task['date_string']
-                                    ),
-                                    [
-                                        {
-                                            'type': 'postback',
-                                            'title':
-                                            'Complete',
-                                            'payload': '{0}:{1}'.format(
-                                                'task_id',
-                                                task['id']
-                                            )
-                                        },
-                                    ]
-                                )
-                        if payload == 'write':
-                            send_FB_text(
-                                sender_id,
-                                'Enter your task as follows: <Task Name> due <Date string>. Enter \'never\' if there is no due date.')
-                        if 'task_id' in payload:
-                            task_id = payload.split(':')[1]
-                            print task_id
-                            tc.complete_task(task_id)
-                            send_FB_text(sender_id, 'Task completed.')
+                                generic_response(sender_id)
+                        if 'postback' in m:
+                            payload = m['postback']['payload']
+                            if payload == 'tasks':
+                                send_tasks(sender_id, tc.get_this_week_tasks())
+                            if payload == 'write':
+                                send_write_request(sender_id)
+                            if 'task_id' in payload:
+                                complete_task(sender_id, tc, payload.split(':')[1])
         return 'OK', 200
 
 
-def get_bot_responses(access_token, message):
-    tc = TodoistClient(access_token)
-    if message.lower() == 'tasks':
-        return ['* {0} (Due {1})'.format(
-            task['content'],
-            task['date_string']) for task in tc.get_this_week_tasks()]
-    elif 'write task' in message:
-        task_name = message.split('\'')[1]
-        date_string = message.split('\'')[3]
-        tc.write_task(task_name, 'Inbox', date_string=date_string)
-        return ['Task written.']
+def complete_task(sender_id, tc, task_id):
+    task_id = payload.split(':')[1]
+    print task_id
+    tc.complete_task(task_id)
+    send_FB_text(sender_id, 'Task completed.')
+
+
+def send_tasks(sender_id, tasks):
+    for task in tasks:
+        send_FB_buttons(
+            sender_id,
+            '* {0} (Due {1})'.format(
+                task['content'],
+                task['date_string']
+            ),
+            [
+                {
+                    'type': 'postback',
+                    'title':
+                    'Complete',
+                    'payload': '{0}:{1}'.format(
+                        'task_id',
+                        task['id']
+                    )
+                },
+            ]
+        )
+
+
+def send_write_request(sender_id):
+    send_FB_text(
+        sender_id,
+        'Enter your task as follows: <Task Name> due <Date string>. Enter \'never\' if there is no due date.'
+    )
+
+
+def write_task(sender_id, tc, message):
+    task_name = message.split(' due ')[0]
+    date_string = message.split(' due ')[1]
+    if date_string == 'never':
+        tc.write_task(
+            task_name,
+            'Inbox',
+        )
     else:
-        return ['Type \'tasks\' to get your tasks for the next week. \
-        Type \'write task \'<task_name>\' due \'<date_string>\'\'']
+        tc.write_task(
+            task_name,
+            'Inbox',
+            date_string=date_string
+        )
+    send_FB_text(sender_id, 'Task written.')
+
+
+def generic_response(sender_id):
+    send_FB_buttons(
+        sender_id,
+        'Hi there! Would you like view your tasks or write tasks? \
+        You can also view tasks by typing \'tasks\'. \
+        You can view tasks up to a certain date by typing \'tasks up to <date_string>\' \
+        You can view tasks in a specific project by typing \'tasks in <project_name>\'',
+        [
+            {
+                'type': 'postback',
+                'title': 'View my tasks',
+                'payload': 'tasks'
+            },
+            {
+                'type': 'postback',
+                'title': 'Write tasks',
+                'payload': 'write'
+            }
+        ],
+    )
 
 
 def get_access_token(sender_id):
