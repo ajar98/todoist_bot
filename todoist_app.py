@@ -21,7 +21,7 @@ MONGO_DB_PORT = 21434
 def connect():
     connection = MongoClient(MONGO_DB_ENDPOINT, MONGO_DB_PORT)
     handle = connection['todoist_access_tokens']
-    handle.authenticate('chatbot', 'weaboo')
+    handle.authenticate(os.environ['MONGO_DB_USERNAME'], os.environ['MONGO_DB_PWD'])
     return handle
 
 
