@@ -65,6 +65,7 @@ def webhook():
                                         send_FB_text(sender_id, 'Not a valid project.')
                                 elif ' up to ' in message.lower():
                                     date_string = message.lower().split(' up to ')[1]
+                                    print date_string
                                     date = None
                                     try:
                                         date = parse(date_string).date()
