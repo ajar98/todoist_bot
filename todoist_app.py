@@ -66,10 +66,10 @@ def webhook():
                                 elif ' up to ' in message.lower():
                                     date_string = message.lower().split(' up to ')[1]
                                     print date_string
-                                    date = None
+                                    datetime = None
                                     try:
                                         datetime = parse(date_string)
-                                    except ValueError:
+                                    except:
                                         send_FB_text(
                                             sender_id,
                                             'Date text not recognized. Try using actual dates.'
