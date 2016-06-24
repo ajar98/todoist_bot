@@ -105,7 +105,7 @@ def send_tasks(sender_id, tasks):
             sender_id,
             '* {0} (Due {1})'.format(
                 task['content'],
-                task['date_string']
+                task['date_string'] if task['date_string'] else 'never'
             ),
             [
                 {
