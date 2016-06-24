@@ -39,9 +39,8 @@ def webhook():
             data = json.loads(request.data)['entry'][0]['messaging']
             for event in data:
                 print event
-                if 'sender' in event and 'message' in event:
+                if 'sender' in event:
                     sender_id = event['sender']['id']
-                    message = event['message']['text']
                     if handle.access_tokens.find(
                         {'sender_id': sender_id}
                     ).count() == 0:
@@ -51,7 +50,8 @@ def webhook():
                     if sender_id_matches:
                         access_token = sender_id_matches[0]['access_token']
                         tc = TodoistClient(access_token)
-                        if ('message' in m) and ('text' in m['message']):
+                        if 'message' in event and 'text' in event['message']:
+                            message = event['message']['text']
                             if 'tasks' in message.lower():
                                 if ' in ' in message.lower():
                                     project_name = message.lower().split(' in ')[1]
@@ -81,8 +81,8 @@ def webhook():
                                 write_task(sender_id, tc, message)
                             else:
                                 generic_response(sender_id)
-                        if 'postback' in m:
-                            payload = m['postback']['payload']
+                        if 'postback' in event:
+                            payload = event['postback']['payload']
                             if payload == 'tasks':
                                 send_tasks(sender_id, tc.get_this_week_tasks())
                             if payload == 'write':
