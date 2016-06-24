@@ -37,11 +37,11 @@ def webhook():
     else:
         if request.method == 'POST':
             data = json.loads(request.data)['entry'][0]['messaging']
-            for m in data:
-                print m
-                if 'sender' in m:
-                    sender_id = m['sender']['id']
-                    message = m['message']['text']
+            for event in data:
+                print event
+                if 'sender' in event and 'message' in event:
+                    sender_id = event['sender']['id']
+                    message = event['message']['text']
                     if handle.access_tokens.find(
                         {'sender_id': sender_id}
                     ).count() == 0:
@@ -55,7 +55,14 @@ def webhook():
                             if 'tasks' in message.lower():
                                 if ' in ' in message.lower():
                                     project_name = message.lower().split(' in ')[1]
-                                    send_tasks(sender_id, tc.get_project_tasks())
+                                    project_tasks = tc.get_project_tasks()
+                                    if type(project_tasks) is list:
+                                        if len(project_tasks) > 0:
+                                            send_tasks(sender_id, tc.get_project_tasks())
+                                        else:
+                                            send_FB_text(sender_id, 'No tasks in this project.')
+                                    else:
+                                        send_FB_text(sender_id, 'Not a valid project.')
                                 elif ' up to ' in message.lower():
                                     date_string = message.lower().split(' up to ')[1]
                                     date = None
