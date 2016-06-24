@@ -14,10 +14,12 @@ FB_MESSAGES_ENDPOINT = 'https://graph.facebook.com/v2.6/me/messages'
 OAUTH_CODE_ENDPOINT = 'https://todoist.com/oauth/authorize'
 OAUTH_ACCESS_TOKEN_ENDPOINT = 'https://todoist.com/oauth/access_token'
 REDIRECT_URI = 'http://pure-hamlet-63323.herokuapp.com/todoist_callback'
+MONGO_DB_ENDPOINT = 'ds021434.mlab.com'
+MONGO_DB_PORT = 21434
 
 
 def connect():
-    connection = MongoClient('ds021434.mlab.com', 21434)
+    connection = MongoClient(MONGO_DB_ENDPOINT, MONGO_DB_PORT)
     handle = connection['todoist_access_tokens']
     handle.authenticate('chatbot', 'weaboo')
     return handle
