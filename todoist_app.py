@@ -55,7 +55,7 @@ def webhook():
                             if 'tasks' in message.lower():
                                 if ' in ' in message.lower():
                                     project_name = message.lower().split(' in ')[1]
-                                    project_tasks = tc.get_project_tasks()
+                                    project_tasks = tc.get_project_tasks(project_name)
                                     if type(project_tasks) is list:
                                         if len(project_tasks) > 0:
                                             send_tasks(sender_id, tc.get_project_tasks())
