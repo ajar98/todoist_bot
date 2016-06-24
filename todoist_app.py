@@ -67,7 +67,7 @@ def webhook():
                                     date_string = message.lower().split(' up to ')[1]
                                     date = None
                                     try:
-                                        date = parse(date_string)
+                                        date = parse(date_string).date()
                                     except ValueError:
                                         send_FB_text(
                                             sender_id,
