@@ -58,7 +58,7 @@ def webhook():
                                     project_tasks = tc.get_project_tasks(project_name)
                                     if type(project_tasks) is list:
                                         if len(project_tasks) > 0:
-                                            send_tasks(sender_id, tc.get_project_tasks())
+                                            send_tasks(sender_id, project_tasks)
                                         else:
                                             send_FB_text(sender_id, 'No tasks in this project.')
                                     else:
