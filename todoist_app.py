@@ -68,14 +68,14 @@ def webhook():
                                     print date_string
                                     date = None
                                     try:
-                                        date = parse(date_string).date()
+                                        datetime = parse(date_string)
                                     except ValueError:
                                         send_FB_text(
                                             sender_id,
                                             'Date text not recognized. Try using actual dates.'
                                         )
-                                    if date:
-                                        send_tasks(sender_id, tc.get_tasks_up_to_date(date))
+                                    if datetime:
+                                        send_tasks(sender_id, tc.get_tasks_up_to_date(datetime.date()))
                                 else:
                                     send_tasks(sender_id, tc.get_this_week_tasks())
                             elif ' due ' in message:
