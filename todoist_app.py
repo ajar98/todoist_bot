@@ -148,10 +148,10 @@ def write_task(sender_id, tc, message):
 def generic_response(sender_id):
     send_FB_buttons(
         sender_id,
-        'Hi there! Would you like view your tasks or write tasks? \
-        You can also view tasks by typing \'tasks\'. \
-        You can view tasks up to a certain date by typing \'tasks up to <date_string>\' \
-        You can view tasks in a specific project by typing \'tasks in <project_name>\'',
+        '''Hi there! Would you like view your tasks or write tasks?
+        You can also view tasks by typing \'tasks\'.
+        You can view tasks up to a certain date by typing \'tasks up to <date_string>\'
+        You can view tasks in a specific project by typing \'tasks in <project_name>\'''',
         [
             {
                 'type': 'postback',
