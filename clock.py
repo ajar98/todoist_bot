@@ -16,7 +16,7 @@ sched = BlockingScheduler()
 handle = connect()
 
 
-@sched.scheduled_job('cron', hour=6)
+@sched.scheduled_job('interval', minutes=1)
 def timed_job():
     for entry in handle.access_tokens.find():
         if 'access_token' in entry:
