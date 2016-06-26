@@ -14,9 +14,12 @@ def connect():
 
 sched = BlockingScheduler()
 handle = connect()
+time_diff = round(
+	(datetime.datetime.utcnow() - 
+		datetime.datetime.now()).total_seconds() / 3600)
 
 
-@sched.scheduled_job('cron', hour=6)
+@sched.scheduled_job('cron', hour=(1 + time_diff) % 24, minute=17)
 def today_tasks():
     for entry in handle.access_tokens.find():
         if 'access_token' in entry:
