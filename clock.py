@@ -2,6 +2,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from pymongo import MongoClient
 from client import TodoistClient
 from todoist_app import send_tasks, send_FB_text
+from datetime import datetime
 
 MONGO_DB_ENDPOINT = 'ds021434.mlab.com'
 
@@ -15,8 +16,8 @@ def connect():
 sched = BlockingScheduler()
 handle = connect()
 time_diff = round(
-	(datetime.datetime.utcnow() - 
-		datetime.datetime.now()).total_seconds() / 3600)
+	(datetime.utcnow() - 
+		datetime.now()).total_seconds() / 3600)
 
 
 @sched.scheduled_job('cron', hour=(1 + time_diff) % 24, minute=17)
