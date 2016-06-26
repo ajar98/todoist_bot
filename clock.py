@@ -16,8 +16,8 @@ sched = BlockingScheduler()
 handle = connect()
 
 
-@sched.scheduled_job('interval', minutes=1)
-def timed_job():
+@sched.scheduled_job('cron', hour=6)
+def today_tasks():
     for entry in handle.access_tokens.find():
         if 'access_token' in entry:
         	tc = TodoistClient(entry['access_token'])
