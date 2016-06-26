@@ -1,9 +1,10 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
 from pymongo import MongoClient
 from client import TodoistClient
-from todoist_app import send_tasks
+from todoist_app import send_tasks, send_FB_text
 
 MONGO_DB_ENDPOINT = 'ds021434.mlab.com'
+
 
 def connect():
     connection = MongoClient(MONGO_DB_ENDPOINT, 21434)
@@ -15,16 +16,26 @@ sched = BlockingScheduler()
 handle = connect()
 
 
-@sched.scheduled_job('interval', minutes=1)
+@sched.scheduled_job('cron', hour=6)
 def timed_job():
-	for entry in handle.access_tokens.find():
-		tc = TodoistClient(entry['access_token'])
-		send_tasks(entry['sender_id'], tc.get_today_tasks())
-
-
-# @sched.scheduled_job('cron', day_of_week='mon-fri', hour=17)
-# def scheduled_job():
-#     print 'This job is run every weekday at 5pm.'
+    for entry in handle.access_tokens.find():
+        if 'access_token' in entry:
+        	tc = TodoistClient(entry['access_token'])
+        	today_tasks = tc.get_today_tasks()
+        	if today_tasks:
+        		send_FB_text(
+        			entry['sender_id'],
+        			'Here are your tasks for today:'
+        		)
+        		send_tasks(
+        			entry['sender_id'],
+        			today_tasks
+        		)
+        	else:
+				send_FB_text(
+					entry['sender_id'],
+					'You have no tasks today! Have a great day!'
+				)
 
 
 sched.start()
