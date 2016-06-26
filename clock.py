@@ -20,7 +20,7 @@ time_diff = round(
 		datetime.now()).total_seconds() / 3600)
 
 
-@sched.scheduled_job('cron', hour=(1 + time_diff) % 24, minute=17)
+@sched.scheduled_job('cron', hour=(1 + time_diff) % 24, minute=21)
 def today_tasks():
     for entry in handle.access_tokens.find():
         if 'access_token' in entry:
