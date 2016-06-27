@@ -86,6 +86,7 @@ def webhook():
                                 generic_response(sender_id)
                         if 'postback' in event:
                             payload = event['postback']['payload']
+                            print 'Payload: {0}'.format(payload)
                             if payload == 'tasks':
                                 send_tasks(sender_id, tc.get_this_week_tasks())
                             if payload == 'write':
@@ -96,7 +97,6 @@ def webhook():
 
 
 def complete_task(sender_id, tc, task_id):
-    task_id = payload.split(':')[1]
     print task_id
     tc.complete_task(task_id)
     send_FB_text(sender_id, 'Task completed.')
