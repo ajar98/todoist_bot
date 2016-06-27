@@ -1,23 +1,29 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
+import os
 from pymongo import MongoClient
 from client import TodoistClient
 from todoist_app import send_tasks, send_FB_text
 from datetime import datetime
 
 MONGO_DB_ENDPOINT = 'ds021434.mlab.com'
+MONGO_DB_PORT = 21434
 
 
 def connect():
-    connection = MongoClient(MONGO_DB_ENDPOINT, 21434)
+    connection = MongoClient(MONGO_DB_ENDPOINT, MONGO_DB_PORT)
     handle = connection['todoist_access_tokens']
-    handle.authenticate('chatbot', 'weaboo')
+    handle.authenticate(
+    	os.environ['MONGO_DB_USERNAME'],
+    	os.environ['MONGO_DB_PWD']
+    )
     return handle
+
 
 sched = BlockingScheduler()
 handle = connect()
 
 
-@sched.scheduled_job('cron', hour=13)
+@sched.scheduled_job('cron', hour=3, minute=24)
 def today_tasks():
     for entry in handle.access_tokens.find():
         if 'access_token' in entry:
