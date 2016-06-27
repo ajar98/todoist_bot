@@ -133,4 +133,4 @@ class WriteTask(Command):
 
 if __name__ == '__main__':
     tc = TodoistClient(TOKEN)
-    print json.dumps(tc.get_project_tasks('card citator'), indent=4)
+    print tc.sync_response['user']['tz_info']['hours']
