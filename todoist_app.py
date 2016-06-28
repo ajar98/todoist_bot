@@ -9,6 +9,7 @@ from client import TodoistClient
 from uuid import uuid4
 from pymongo import MongoClient
 from dateutil.parser import parse
+from webob import Response
 
 FB_MESSAGES_ENDPOINT = 'https://graph.facebook.com/v2.6/me/messages'
 OAUTH_CODE_ENDPOINT = 'https://todoist.com/oauth/authorize'
@@ -53,6 +54,17 @@ def webhook():
                 if sender_id_matches:
                     access_token = sender_id_matches[0]['access_token']
                     tc = TodoistClient(access_token)
+                    if not 'user_id' in [x for x in handle.access_tokens.find(
+                        {'access_token': access_token}
+                    )][0]:
+                        handle.access_tokens.update(
+                            {'access_token': access_token},
+                            {
+                                '$set': {
+                                    'user_id': tc.sync_response['user']['id']
+                                }
+                            }
+                        )
                     if 'message' in event and 'text' in event['message']:
                         message = event['message']['text']
                         if 'tasks' in message.lower():
@@ -280,11 +292,13 @@ def get_token(code):
 @app.route('/todoist_notifications')
 def todoist_notifications():
     if request.method == 'POST':
-        test_method(request.data)
-
-
-def test_method(data):
-    print data
+        data = json.loads(request.data)
+        if data['event_name'] == 'item:added':
+            user_id = data['event_data']['user_id']
+            sender_id = [x for x in handle.access_tokens.find(
+                {'user_id': user_id})][0]['sender_id']
+            send_FB_text(sender_id, 'A task was just added.')
+        return Response()
 
 
 def send_FB_message(sender_id, message):
