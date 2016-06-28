@@ -11,9 +11,6 @@ from uuid import uuid4
 # create a new project
 # create a task in a new project
 
-
-TOKEN = 'e5d57a2cbb3a10c236c78eba3d578e18f875a4ee'
-
 ID_LENGTH = 20
 
 ADD_TASK_TYPE = 'item_add'
@@ -77,7 +74,8 @@ class TodoistClient():
         ] if project_id else None
 
     def get_this_week_tasks(self):
-        return self.get_tasks_up_to_date(datetime.date.today() + timedelta(weeks=1))
+        return self.get_tasks_up_to_date(
+            datetime.date.today() + timedelta(weeks=1))
 
     def get_tasks_up_to_date(self, date, sort_by_priority=False):
         return self.sort_tasks_by_date([
@@ -129,8 +127,3 @@ class WriteTask(Command):
                 'labels': label_ids
             }
         )
-
-
-if __name__ == '__main__':
-    tc = TodoistClient(TOKEN)
-    print tc.sync_response['user']['tz_info']['hours']

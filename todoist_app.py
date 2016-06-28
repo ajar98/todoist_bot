@@ -21,7 +21,10 @@ MONGO_DB_PORT = 21434
 def connect():
     connection = MongoClient(MONGO_DB_ENDPOINT, MONGO_DB_PORT)
     handle = connection['todoist_access_tokens']
-    handle.authenticate(os.environ['MONGO_DB_USERNAME'], os.environ['MONGO_DB_PWD'])
+    handle.authenticate(
+        os.environ['MONGO_DB_USERNAME'],
+        os.environ['MONGO_DB_PWD']
+    )
     return handle
 
 
@@ -56,17 +59,32 @@ def webhook():
                             message = event['message']['text']
                             if 'tasks' in message.lower():
                                 if ' in ' in message.lower():
-                                    project_name = message.lower().split(' in ')[1]
-                                    project_tasks = tc.get_project_tasks(project_name)
+                                    project_name = message.lower().split(
+                                        ' in '
+                                    )[1]
+                                    project_tasks = tc.get_project_tasks(
+                                        project_name
+                                    )
                                     if type(project_tasks) is list:
                                         if len(project_tasks) > 0:
-                                            send_tasks(sender_id, project_tasks)
+                                            send_tasks(
+                                                sender_id,
+                                                project_tasks
+                                            )
                                         else:
-                                            send_FB_text(sender_id, 'No tasks in this project.')
+                                            send_FB_text(
+                                                sender_id,
+                                                'No tasks in this project.'
+                                            )
                                     else:
-                                        send_FB_text(sender_id, 'Not a valid project.')
+                                        send_FB_text(
+                                            sender_id,
+                                            'Not a valid project.'
+                                        )
                                 elif ' up to ' in message.lower():
-                                    date_string = message.lower().split(' up to ')[1]
+                                    date_string = message.lower().split(
+                                        ' up to '
+                                    )[1]
                                     print date_string
                                     datetime = None
                                     try:
@@ -74,16 +92,27 @@ def webhook():
                                     except:
                                         send_FB_text(
                                             sender_id,
-                                            'Date text not recognized. Try using actual dates.'
+                                            (
+                                                'Date text not recognized. \n'
+                                                'Try using actual dates.'
+                                            )
                                         )
                                     if datetime:
-                                        send_tasks(sender_id, tc.get_tasks_up_to_date(datetime.date()))
+                                        send_tasks(
+                                            sender_id,
+                                            tc.get_tasks_up_to_date(
+                                                datetime.date()
+                                            )
+                                        )
                                 else:
-                                    send_tasks(sender_id, tc.get_this_week_tasks())
+                                    send_tasks(
+                                        sender_id,
+                                        tc.get_this_week_tasks()
+                                    )
                             elif ' due ' in message:
                                 write_task(sender_id, tc, message)
                             else:
-                                generic_response(sender_id)
+                                send_generic_response(sender_id)
                         if 'postback' in event:
                             payload = event['postback']['payload']
                             print 'Payload: {0}'.format(payload)
@@ -92,14 +121,12 @@ def webhook():
                             if payload == 'write':
                                 send_write_request(sender_id)
                             if 'task_id' in payload:
-                                complete_task(sender_id, tc, payload.split(':')[1])
+                                complete_task(
+                                    sender_id,
+                                    tc,
+                                    payload.split(':')[1]
+                                )
         return 'OK', 200
-
-
-def complete_task(sender_id, tc, task_id):
-    print task_id
-    tc.complete_task(task_id)
-    send_FB_text(sender_id, 'Task completed.')
 
 
 def send_tasks(sender_id, tasks):
@@ -127,7 +154,11 @@ def send_tasks(sender_id, tasks):
 def send_write_request(sender_id):
     send_FB_text(
         sender_id,
-        'Enter your task as follows: <Task Name> due <Date string>. Enter \'never\' if there is no due date.'
+        (
+            'Enter your task as follows: '
+            '<Task Name> due <Date string>. '
+            'Enter \'never\' if there is no due date.'
+        )
     )
 
 
@@ -148,14 +179,22 @@ def write_task(sender_id, tc, message):
     send_FB_text(sender_id, 'Task written.')
 
 
-def generic_response(sender_id):
+def complete_task(sender_id, tc, task_id):
+    print task_id
+    tc.complete_task(task_id)
+    send_FB_text(sender_id, 'Task completed.')
+
+
+def send_generic_response(sender_id):
     send_FB_buttons(
         sender_id,
         (
             'Hi there! Would you like view your tasks or write tasks?\n'
             'You can also view tasks by typing \'tasks\'.\n'
-            'You can view tasks up to a certain date by typing \'tasks up to <date_string>\'\n'
-            'You can view tasks in a specific project by typing \'tasks in <project_name>\'\n'
+            'You can view tasks up to a certain date'
+            ' by typing \'tasks up to <date_string>\'\n'
+            'You can view tasks in a specific project'
+            ' by typing \'tasks in <project_name>\'\n'
         ),
         [
             {
@@ -170,6 +209,31 @@ def generic_response(sender_id):
             }
         ],
     )
+
+
+@app.route('/todoist_callback')
+def todoist_callback(methods=['GET']):
+    if request.method == 'GET':
+        error = request.args.get('error', '')
+        if error:
+            return 'Error: ' + error
+        state = request.args.get('state', '')
+        code = request.args.get('code')
+        # We'll change this next line in just a moment
+        access_token = get_token(code)
+        print 'Access token: {0}'.format(access_token)
+        handle.access_tokens.update(
+            {'access_token': 'temp'},
+            {
+                '$set': {
+                    'access_token': access_token
+                }
+            }
+        )
+        return 'success' if access_token and \
+            handle.access_tokens.find(
+                {'access_token': access_token}
+            ).count() else 'failure'
 
 
 def get_access_token(sender_id):
@@ -200,31 +264,6 @@ def get_access_token(sender_id):
             }
         ],
     )
-
-
-@app.route('/todoist_callback')
-def todoist_callback(methods=['GET']):
-    if request.method == 'GET':
-        error = request.args.get('error', '')
-        if error:
-            return 'Error: ' + error
-        state = request.args.get('state', '')
-        code = request.args.get('code')
-        # We'll change this next line in just a moment
-        access_token = get_token(code)
-        print 'Access token: {0}'.format(access_token)
-        handle.access_tokens.update(
-            {'access_token': 'temp'},
-            {
-                '$set': {
-                    'access_token': access_token
-                }
-            }
-        )
-        return 'success' if access_token and \
-            handle.access_tokens.find(
-                {'access_token': access_token}
-            ).count() else 'failure'
 
 
 def get_token(code):
@@ -289,10 +328,9 @@ def send_FB_buttons(sender_id, text, buttons):
     )
 
 
-def updateDict(old_dict, update):
-    new_dict = old_dict
-    new_dict.update(update)
-    return new_dict
+@app.route('/todoist_notifications')
+def todoist_notifications(methods=['POST']):
+    print json.dumps(request.data, indent=4)
 
 
 if __name__ == '__main__':
