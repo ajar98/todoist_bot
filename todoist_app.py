@@ -293,12 +293,16 @@ def get_token(code):
 def todoist_notifications():
     if request.method == 'POST':
         data = json.loads(request.data)
-        print data
         if data['event_name'] == 'item:added':
             user_id = data['event_data']['user_id']
             sender_id = [x for x in handle.access_tokens.find(
                 {'user_id': user_id})][0]['sender_id']
             send_FB_text(sender_id, 'A task was just added.')
+        if data['event_name'] == 'item:completed':
+            user_id = data['event_data']['user_id']
+            sender_id = [x for x in handle.access_tokens.find(
+                {'user_id': user_id})][0]['sender_id']
+            send_FB_text(sender_id, 'A task was just completed.')
         return Response()
 
 
