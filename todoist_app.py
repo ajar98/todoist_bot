@@ -109,7 +109,7 @@ def webhook():
                                         sender_id,
                                         tc.get_this_week_tasks()
                                     )
-                            elif 'write' in message and ' due ' in message:
+                            elif ' due ' in message:
                                 write_task(sender_id, tc, message)
                             else:
                                 send_generic_response(sender_id)
