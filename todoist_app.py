@@ -283,6 +283,7 @@ def todoist_notifications():
         print 'hi'
         return 'OK', 200
     elif request.method == 'GET':
+        print 'does this work'
         return 'lmao'
 
 
