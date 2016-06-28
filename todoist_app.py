@@ -9,7 +9,9 @@ from client import TodoistClient
 from uuid import uuid4
 from pymongo import MongoClient
 from dateutil.parser import parse
+from datetime import timedelta, datetime
 from webob import Response
+from apscheduler.schedulers.background import BackgroundScheduler
 
 FB_MESSAGES_ENDPOINT = 'https://graph.facebook.com/v2.6/me/messages'
 OAUTH_CODE_ENDPOINT = 'https://todoist.com/oauth/authorize'
@@ -17,6 +19,8 @@ OAUTH_ACCESS_TOKEN_ENDPOINT = 'https://todoist.com/oauth/access_token'
 REDIRECT_URI = 'http://pure-hamlet-63323.herokuapp.com/todoist_callback'
 MONGO_DB_ENDPOINT = 'ds021434.mlab.com'
 MONGO_DB_PORT = 21434
+
+REMINDER_OFFSET = 2
 
 
 def connect():
@@ -31,6 +35,7 @@ def connect():
 
 app = Flask(__name__)
 handle = connect()
+scheduler = BackgroundScheduler()
 
 
 @app.route('/webhook', methods=['GET', 'POST'])
@@ -43,8 +48,10 @@ def webhook():
     elif request.method == 'POST':
         data = json.loads(request.data)['entry'][0]['messaging']
         for event in data:
+            # check if the event was sent by someone
             if 'sender' in event:
                 sender_id = event['sender']['id']
+                # get Todoist access token if there is none in MongoDB
                 if handle.access_tokens.find(
                     {'sender_id': sender_id}
                 ).count() == 0:
@@ -54,6 +61,7 @@ def webhook():
                 if sender_id_matches:
                     access_token = sender_id_matches[0]['access_token']
                     tc = TodoistClient(access_token)
+                    # add user_id to Mongo object to handle live notifications
                     if not 'user_id' in [x for x in handle.access_tokens.find(
                         {'access_token': access_token}
                     )][0]:
@@ -68,6 +76,7 @@ def webhook():
                     if 'message' in event and 'text' in event['message']:
                         message = event['message']['text']
                         if 'tasks' in message.lower():
+                            # return tasks in project
                             if ' in ' in message.lower():
                                 project_name = message.lower().split(
                                     ' in '
@@ -91,6 +100,7 @@ def webhook():
                                         sender_id,
                                         'Not a valid project.'
                                     )
+                            # return tasks up to a certain date
                             elif ' up to ' in message.lower():
                                 date_string = message.lower().split(
                                     ' up to '
@@ -113,15 +123,18 @@ def webhook():
                                             datetime.date()
                                         )
                                     )
+                            # send a normal tasks response
                             else:
                                 send_tasks(
                                     sender_id,
                                     tc.get_this_week_tasks()
                                 )
+                        # write a task due a certain date
                         elif ' due ' in message:
                             write_task(sender_id, tc, message)
                         else:
                             send_generic_response(sender_id)
+                    # button handling
                     if 'postback' in event:
                         payload = event['postback']['payload']
                         print 'Payload: {0}'.format(payload)
@@ -227,7 +240,6 @@ def todoist_callback(methods=['GET']):
             return 'Error: ' + error
         state = request.args.get('state', '')
         code = request.args.get('code')
-        # We'll change this next line in just a moment
         access_token = get_token(code)
         print 'Access token: {0}'.format(access_token)
         handle.access_tokens.update(
@@ -297,13 +309,41 @@ def todoist_notifications():
             user_id = data['event_data']['user_id']
             sender_id = [x for x in handle.access_tokens.find(
                 {'user_id': user_id})][0]['sender_id']
-            send_FB_text(sender_id, 'A task was just added.')
+            task = data['event_data']
+            if task['due_date_utc']:
+                # naivete necessary to compare objects
+                due_date = parse(task['due_date_utc']).replace(tzinfo=None)
+                if due_date < (
+                    datetime.now() + timedelta(minutes=REMINDER_OFFSET)
+                ):
+                    reminder_date = due_date - \
+                        timedelta(minutes=REMINDER_OFFSET)
+                    scheduler.add_job(
+                        send_reminder,
+                        args=[sender_id, task, REMINDER_OFFSET]
+                        trigger='cron'
+                        year=reminder_date.year,
+                        month=reminder_date.month,
+                        day=reminder_date.day,
+                        hour=reminder_date.hour,
+                        minute=reminder_date.minute
+                    )
         if data['event_name'] == 'item:completed':
             user_id = data['event_data']['user_id']
             sender_id = [x for x in handle.access_tokens.find(
                 {'user_id': user_id})][0]['sender_id']
             send_FB_text(sender_id, 'A task was just completed.')
         return Response()
+
+
+def send_reminder(sender_id, task, mins_left):
+    send_FB_text(
+        sender_id,
+        'Your task, {0}, is due in {1} minutes'.format(
+            task['content'],
+            mins_left
+        )
+    )
 
 
 def send_FB_message(sender_id, message):
@@ -355,3 +395,4 @@ def send_FB_buttons(sender_id, text, buttons):
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+    scheduler.start()
