@@ -41,6 +41,7 @@ def webhook():
         else:
             return 'Wrong validation token'
     elif request.method == 'POST':
+        print 'post'
         data = json.loads(request.data)['entry'][0]['messaging']
         for event in data:
             if 'sender' in event:
@@ -135,7 +136,7 @@ def webhook():
                                 tc,
                                 payload.split(':')[1]
                             )
-        return 'OK', 200
+        return Response()
 
 
 def send_tasks(sender_id, tasks):
