@@ -41,7 +41,6 @@ def webhook():
         else:
             return 'Wrong validation token'
     elif request.method == 'POST':
-        print 'post'
         data = json.loads(request.data)['entry'][0]['messaging']
         for event in data:
             if 'sender' in event:
@@ -292,7 +291,9 @@ def get_token(code):
 
 @app.route('/todoist_notifications')
 def todoist_notifications():
-    if request.method == 'POST':
+    if request.method == 'GET':
+        return 'fk'
+    elif request.method == 'POST':
         data = json.loads(request.data)
         if data['event_name'] == 'item:added':
             user_id = data['event_data']['user_id']
