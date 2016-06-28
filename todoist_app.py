@@ -320,8 +320,8 @@ def todoist_notifications():
                         timedelta(minutes=REMINDER_OFFSET)
                     scheduler.add_job(
                         send_reminder,
-                        args=[sender_id, task, REMINDER_OFFSET]
-                        trigger='cron'
+                        args=[sender_id, task, REMINDER_OFFSET],
+                        trigger='cron',
                         year=reminder_date.year,
                         month=reminder_date.month,
                         day=reminder_date.day,
