@@ -95,7 +95,7 @@ class Command(object):
         self.type = command_type
         self.args = args
         self.uuid = uuid4().__str__()
-        self.temp_id = self.generate_id()
+        self.temp_id = uuid4().__str__()
 
     def to_dict(self):
         return {

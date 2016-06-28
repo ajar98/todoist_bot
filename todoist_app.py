@@ -109,7 +109,7 @@ def webhook():
                                         sender_id,
                                         tc.get_this_week_tasks()
                                     )
-                            elif ' due ' in message:
+                            elif 'write' in message and ' due ' in message:
                                 write_task(sender_id, tc, message)
                             else:
                                 send_generic_response(sender_id)
@@ -156,7 +156,7 @@ def send_write_request(sender_id):
         sender_id,
         (
             'Enter your task as follows: '
-            '<Task Name> due <Date string>. '
+            'write <Task Name> due <Date string>. '
             'Enter \'never\' if there is no due date.'
         )
     )
