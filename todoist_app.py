@@ -329,7 +329,7 @@ def send_FB_buttons(sender_id, text, buttons):
 
 
 @app.route('/todoist_notifications')
-def todoist_notifications(methods=['POST']):
+def todoist_notifications():
     print json.dumps(request.data, indent=4)
 
 
