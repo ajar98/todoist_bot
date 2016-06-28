@@ -39,91 +39,90 @@ def webhook():
             return request.args.get('hub.challenge')
         else:
             return 'Wrong validation token'
-    else:
-        if request.method == 'POST':
-            data = json.loads(request.data)['entry'][0]['messaging']
-            for event in data:
-                if 'sender' in event:
-                    sender_id = event['sender']['id']
-                    if handle.access_tokens.find(
-                        {'sender_id': sender_id}
-                    ).count() == 0:
-                        get_access_token(sender_id)
-                    sender_id_matches = [x for x in handle.access_tokens.find(
-                        {'sender_id': sender_id})]
-                    if sender_id_matches:
-                        access_token = sender_id_matches[0]['access_token']
-                        tc = TodoistClient(access_token)
-                        if 'message' in event and 'text' in event['message']:
-                            message = event['message']['text']
-                            if 'tasks' in message.lower():
-                                if ' in ' in message.lower():
-                                    project_name = message.lower().split(
-                                        ' in '
-                                    )[1]
-                                    project_tasks = tc.get_project_tasks(
-                                        project_name
-                                    )
-                                    if type(project_tasks) is list:
-                                        if len(project_tasks) > 0:
-                                            send_tasks(
-                                                sender_id,
-                                                project_tasks
-                                            )
-                                        else:
-                                            send_FB_text(
-                                                sender_id,
-                                                'No tasks in this project.'
-                                            )
+    elif request.method == 'POST':
+        data = json.loads(request.data)['entry'][0]['messaging']
+        for event in data:
+            if 'sender' in event:
+                sender_id = event['sender']['id']
+                if handle.access_tokens.find(
+                    {'sender_id': sender_id}
+                ).count() == 0:
+                    get_access_token(sender_id)
+                sender_id_matches = [x for x in handle.access_tokens.find(
+                    {'sender_id': sender_id})]
+                if sender_id_matches:
+                    access_token = sender_id_matches[0]['access_token']
+                    tc = TodoistClient(access_token)
+                    if 'message' in event and 'text' in event['message']:
+                        message = event['message']['text']
+                        if 'tasks' in message.lower():
+                            if ' in ' in message.lower():
+                                project_name = message.lower().split(
+                                    ' in '
+                                )[1]
+                                project_tasks = tc.get_project_tasks(
+                                    project_name
+                                )
+                                if type(project_tasks) is list:
+                                    if len(project_tasks) > 0:
+                                        send_tasks(
+                                            sender_id,
+                                            project_tasks
+                                        )
                                     else:
                                         send_FB_text(
                                             sender_id,
-                                            'Not a valid project.'
-                                        )
-                                elif ' up to ' in message.lower():
-                                    date_string = message.lower().split(
-                                        ' up to '
-                                    )[1]
-                                    datetime = None
-                                    try:
-                                        datetime = parse(date_string)
-                                    except:
-                                        send_FB_text(
-                                            sender_id,
-                                            (
-                                                'Date text not recognized. \n'
-                                                'Try using actual dates.'
-                                            )
-                                        )
-                                    if datetime:
-                                        send_tasks(
-                                            sender_id,
-                                            tc.get_tasks_up_to_date(
-                                                datetime.date()
-                                            )
+                                            'No tasks in this project.'
                                         )
                                 else:
+                                    send_FB_text(
+                                        sender_id,
+                                        'Not a valid project.'
+                                    )
+                            elif ' up to ' in message.lower():
+                                date_string = message.lower().split(
+                                    ' up to '
+                                )[1]
+                                datetime = None
+                                try:
+                                    datetime = parse(date_string)
+                                except:
+                                    send_FB_text(
+                                        sender_id,
+                                        (
+                                            'Date text not recognized. \n'
+                                            'Try using actual dates.'
+                                        )
+                                    )
+                                if datetime:
                                     send_tasks(
                                         sender_id,
-                                        tc.get_this_week_tasks()
+                                        tc.get_tasks_up_to_date(
+                                            datetime.date()
+                                        )
                                     )
-                            elif ' due ' in message:
-                                write_task(sender_id, tc, message)
                             else:
-                                send_generic_response(sender_id)
-                        if 'postback' in event:
-                            payload = event['postback']['payload']
-                            print 'Payload: {0}'.format(payload)
-                            if payload == 'tasks':
-                                send_tasks(sender_id, tc.get_this_week_tasks())
-                            if payload == 'write':
-                                send_write_request(sender_id)
-                            if 'task_id' in payload:
-                                complete_task(
+                                send_tasks(
                                     sender_id,
-                                    tc,
-                                    payload.split(':')[1]
+                                    tc.get_this_week_tasks()
                                 )
+                        elif ' due ' in message:
+                            write_task(sender_id, tc, message)
+                        else:
+                            send_generic_response(sender_id)
+                    if 'postback' in event:
+                        payload = event['postback']['payload']
+                        print 'Payload: {0}'.format(payload)
+                        if payload == 'tasks':
+                            send_tasks(sender_id, tc.get_this_week_tasks())
+                        if payload == 'write':
+                            send_write_request(sender_id)
+                        if 'task_id' in payload:
+                            complete_task(
+                                sender_id,
+                                tc,
+                                payload.split(':')[1]
+                            )
         return 'OK', 200
 
 
@@ -278,6 +277,15 @@ def get_token(code):
     return token_json['access_token']
 
 
+@app.route('/todoist_notifications')
+def todoist_notifications():
+    if request.method == 'POST':
+        print 'hi'
+        return 'OK', 200
+    elif request.method == 'GET':
+        return 'lmao'
+
+
 def send_FB_message(sender_id, message):
     fb_response = requests.post(
         FB_MESSAGES_ENDPOINT,
@@ -323,13 +331,6 @@ def send_FB_buttons(sender_id, text, buttons):
             }
         }
     )
-
-
-@app.route('/todoist_notifications')
-def todoist_notifications(methods=['POST']):
-    if request.method == 'POST':
-        print 'hi'
-        return 'OK', 200
 
 
 if __name__ == '__main__':
