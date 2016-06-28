@@ -290,11 +290,10 @@ def get_token(code):
 
 
 @app.route('/todoist_notifications')
-def todoist_notifications():
-    if request.method == 'GET':
-        return 'fk'
-    elif request.method == 'POST':
+def todoist_notifications(methods=['POST']):
+    if request.method == 'POST':
         data = json.loads(request.data)
+        print data
         if data['event_name'] == 'item:added':
             user_id = data['event_data']['user_id']
             sender_id = [x for x in handle.access_tokens.find(
