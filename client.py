@@ -14,6 +14,7 @@ from uuid import uuid4
 ID_LENGTH = 20
 
 ADD_TASK_TYPE = 'item_add'
+ITEM_COMPLETE_TYPE = 'item_complete'
 
 
 class TodoistClient():
@@ -35,7 +36,8 @@ class TodoistClient():
     def write(self, commands):
         return self.api.sync(commands=commands)
 
-    def write_task(self, task_name, project_name, date_string=None, priority=1):
+    def write_task(self, task_name, project_name,
+                   date_string=None, priority=1):
         return self.write(
             [
                 WriteTask(
@@ -51,15 +53,11 @@ class TodoistClient():
         return self.write_task(task_name, "Inbox")
 
     def complete_task(self, task_id):
-        self.api.sync(
-            commands=[
-                {
-                    'type': 'item_complete',
-                    'uuid': uuid4().__str__(),
-                    'args': {
-                        'ids': [task_id]
-                    }
-                }
+        return self.write(
+            [
+                CompleteTask(
+                    task_id
+                ).to_dict()
             ]
         )
 
@@ -96,14 +94,8 @@ class Command(object):
     def __init__(self, command_type, args):
         self.type = command_type
         self.args = args
-        self.uuid = self.generate_id()
+        self.uuid = uuid4().__str__()
         self.temp_id = self.generate_id()
-
-    def generate_id(self):
-        return ''.join(
-            random.choice(
-                string.ascii_lowercase
-            ) for i in range(ID_LENGTH))
 
     def to_dict(self):
         return {
@@ -116,7 +108,8 @@ class Command(object):
 
 class WriteTask(Command):
 
-    def __init__(self, task_name, project_id, date_string=None, priority=1, label_ids=[]):
+    def __init__(self, task_name, project_id,
+                 date_string=None, priority=1, label_ids=[]):
         super(WriteTask, self).__init__(
             ADD_TASK_TYPE,
             {
@@ -125,5 +118,16 @@ class WriteTask(Command):
                 'date_string': date_string,
                 'priority': priority,
                 'labels': label_ids
+            }
+        )
+
+
+class CompleteTask(Command):
+
+    def __init__(self, task_id):
+        super(CompleteTask, self).__init__(
+            ITEM_COMPLETE_TYPE,
+            {
+                'ids': [task_id]
             }
         )
