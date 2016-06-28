@@ -328,6 +328,7 @@ def send_FB_buttons(sender_id, text, buttons):
 @app.route('/todoist_notifications')
 def todoist_notifications(methods=['POST']):
     if request.method == 'POST':
+        print 'hi'
         return 'OK', 200
 
 
