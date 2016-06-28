@@ -43,7 +43,6 @@ def webhook():
         if request.method == 'POST':
             data = json.loads(request.data)['entry'][0]['messaging']
             for event in data:
-                print event
                 if 'sender' in event:
                     sender_id = event['sender']['id']
                     if handle.access_tokens.find(
@@ -85,7 +84,6 @@ def webhook():
                                     date_string = message.lower().split(
                                         ' up to '
                                     )[1]
-                                    print date_string
                                     datetime = None
                                     try:
                                         datetime = parse(date_string)
@@ -156,7 +154,7 @@ def send_write_request(sender_id):
         sender_id,
         (
             'Enter your task as follows: '
-            'write <Task Name> due <Date string>. '
+            '<Task Name> due <Date string>. '
             'Enter \'never\' if there is no due date.'
         )
     )
@@ -180,7 +178,6 @@ def write_task(sender_id, tc, message):
 
 
 def complete_task(sender_id, tc, task_id):
-    print task_id
     tc.complete_task(task_id)
     send_FB_text(sender_id, 'Task completed.')
 
@@ -330,7 +327,7 @@ def send_FB_buttons(sender_id, text, buttons):
 
 @app.route('/todoist_notifications')
 def todoist_notifications():
-    print json.dumps(request.data, indent=4)
+    return request.data
 
 
 if __name__ == '__main__':
