@@ -282,9 +282,6 @@ def todoist_notifications():
     if request.method == 'POST':
         print 'hi'
         return 'OK', 200
-    elif request.method == 'GET':
-        print 'does this work'
-        return 'lmao'
 
 
 def send_FB_message(sender_id, message):
