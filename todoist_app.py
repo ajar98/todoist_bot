@@ -280,8 +280,11 @@ def get_token(code):
 @app.route('/todoist_notifications')
 def todoist_notifications():
     if request.method == 'POST':
-        print 'hi'
-        return 'OK', 200
+        test_method(request.data)
+
+
+def test_method(data):
+    print data
 
 
 def send_FB_message(sender_id, message):
