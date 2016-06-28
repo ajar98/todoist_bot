@@ -289,8 +289,8 @@ def get_token(code):
     return token_json['access_token']
 
 
-@app.route('/todoist_notifications')
-def todoist_notifications(methods=['POST']):
+@app.route('/todoist_notifications', methods=['POST'])
+def todoist_notifications():
     if request.method == 'POST':
         data = json.loads(request.data)
         print data
