@@ -336,7 +336,7 @@ def todoist_notifications():
                         reminder_date,
                         sender_id,
                         user_id,
-                        task['id'],
+                        task,
                         tc.tz_info['hours']
                     )
         elif data['event_name'] == 'item:completed' \
@@ -390,8 +390,9 @@ def remove_reminder_job(user_id, task_id):
 
 
 def add_reminder_job(reminder_date, sender_id, user_id,
-                     task_id, time_diff):
+                     task, time_diff):
     job_id = uuid4().__str__()
+    task_id = task['id']
     job = scheduler.add_job(
         send_reminder,
         args=[sender_id, user_id, task, REMINDER_OFFSET],
