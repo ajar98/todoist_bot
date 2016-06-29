@@ -149,7 +149,7 @@ def webhook():
                                 payload.split(':')[1]
                             )
                         elif 'remove_alert' in payload:
-                            scheduler.remove_job(payload.split(':')[1])
+                            remove_reminder_job(payload.split(':')[1])
                             send_FB_text(sender_id, 'Alert removed.')
         return Response()
 
@@ -341,7 +341,7 @@ def todoist_notifications():
                         sender_id,
                         'An alert has been set for {0}.'.format(
                             reminder_date.strftime(
-                                '%A, %B %d at {0}:%m'.format(
+                                '%A, %B %d at {0}:%M'.format(
                                     (reminder_date.hour +
                                         tc.tz_info['hours'] + 24) % 24)
                             )
@@ -350,13 +350,15 @@ def todoist_notifications():
                             {
                                 'type': 'postback',
                                 'title': 'Remove alert',
-                                'payload': 'remove_alert:{0}'.format(job_id)
+                                'payload': 'remove_alert:{0}'.format(
+                                    task['id']
+                                )
                             }
                         ]
                     )
                     reminder_jobs = bot_user['reminder_jobs'] \
                         if 'reminder_jobs' in bot_user else {}
-                    reminder_jobs[task['id']] = job_id
+                    reminder_jobs[str(task['id'])] = job_id
                     handle.bot_users.update(
                         {'user_id': user_id},
                         {
@@ -369,17 +371,8 @@ def todoist_notifications():
                 or data['event_name'] == 'item:deleted':
             if 'reminder_jobs' in bot_user:
                 reminder_jobs = bot_user['reminder_jobs']
-                if task['id'] in reminder_jobs.keys():
-                    scheduler.remove_job(reminder_jobs[task['id']])
-                    reminder_jobs.pop(task['id'])
-                    handle.bot_users.update(
-                        {'user_id': user_id},
-                        {
-                            '$set': {
-                                'reminder_jobs': reminder_jobs
-                            }
-                        }
-                    )
+                if str(task['id']) in reminder_jobs.keys():
+                    remove_reminder_job(task['id'])
         elif data['event_name'] == 'item:updated':
             print json.dumps(data['event_data'], indent=4)
         return Response()
@@ -404,6 +397,23 @@ def send_reminder(sender_id, task, mins_left):
             },
         ]
     )
+    remove_reminder_job(task['id'])
+
+
+def remove_reminder_job(task_id):
+    bot_user = [x for x in handle.bot_users.find(
+        {'user_id': user_id})][0]
+    reminder_jobs = bot_user['reminder_jobs']
+    job = reminder_jobs.pop(str(task['id']))
+    handle.bot_users.update(
+        {'user_id': user_id},
+        {
+            '$set': {
+                'reminder_jobs': reminder_jobs
+            }
+        }
+    )
+    scheduler.remove_job(job['job_id'])
 
 
 def send_FB_message(sender_id, message):
