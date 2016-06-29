@@ -329,41 +329,15 @@ def todoist_notifications():
                 due_date = parse(task['due_date_utc']).replace(tzinfo=None)
                 if due_date > (
                     datetime.now() + timedelta(minutes=REMINDER_OFFSET)
-                ):
+                ):  # only set alert if it is before the alert would happen
                     reminder_date = due_date - \
                         timedelta(minutes=REMINDER_OFFSET)
-                    job_id = uuid4().__str__()
-                    job = scheduler.add_job(
-                        send_reminder,
-                        args=[sender_id, user_id, task, REMINDER_OFFSET],
-                        trigger='cron',
-                        year=reminder_date.year,
-                        month=reminder_date.month,
-                        day=reminder_date.day,
-                        hour=reminder_date.hour,
-                        minute=reminder_date.minute,
-                        id=job_id
-                    )
-                    scheduler.start()
-                    add_reminder_job(user_id, task['id'], job_id)
-                    send_FB_buttons(
+                    add_reminder_job(
+                        reminder_date,
                         sender_id,
-                        'An alert has been set for {0}.'.format(
-                            reminder_date.strftime(
-                                '%A, %B %d at {0}:%M'.format(
-                                    (reminder_date.hour +
-                                        tc.tz_info['hours'] + 24) % 24)
-                            )
-                        ),
-                        [
-                            {
-                                'type': 'postback',
-                                'title': 'Remove alert',
-                                'payload': 'remove_alert:{0}'.format(
-                                    task['id']
-                                )
-                            }
-                        ]
+                        user_id,
+                        task['id'],
+                        tc.tz_info['hours']
                     )
         elif data['event_name'] == 'item:completed' \
                 or data['event_name'] == 'item:deleted':
@@ -415,13 +389,26 @@ def remove_reminder_job(user_id, task_id):
     )
 
 
-def add_reminder_job(user_id, task_id, job_id):
+def add_reminder_job(reminder_date, sender_id, user_id,
+                     task_id, time_diff):
+    job_id = uuid4().__str__()
+    job = scheduler.add_job(
+        send_reminder,
+        args=[sender_id, user_id, task, REMINDER_OFFSET],
+        trigger='cron',
+        year=reminder_date.year,
+        month=reminder_date.month,
+        day=reminder_date.day,
+        hour=reminder_date.hour,
+        minute=reminder_date.minute,
+        id=job_id
+    )
+    scheduler.start()
     bot_user = [x for x in handle.bot_users.find(
         {'user_id': user_id})][0]
     reminder_jobs = bot_user['reminder_jobs'] \
         if 'reminder_jobs' in bot_user else {}
     reminder_jobs[str(task_id)] = job_id
-    print reminder_jobs
     handle.bot_users.update(
         {'user_id': user_id},
         {
@@ -429,6 +416,25 @@ def add_reminder_job(user_id, task_id, job_id):
                 'reminder_jobs': reminder_jobs
             }
         }
+    )
+    send_FB_buttons(
+        sender_id,
+        'An alert has been set for {0}.'.format(
+            reminder_date.strftime(
+                '%A, %B %d at {0}:%M'.format(
+                    (reminder_date.hour +
+                        time_diff + 24) % 24)
+            )
+        ),
+        [
+            {
+                'type': 'postback',
+                'title': 'Remove alert',
+                'payload': 'remove_alert:{0}'.format(
+                    task['id']
+                )
+            }
+        ]
     )
 
 
