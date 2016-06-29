@@ -435,7 +435,7 @@ def add_reminder_job(reminder_date, sender_id, user_id,
         sender_id,
         'An alert has been set for {0}.'.format(
             (
-                reminder_date - timedelta(hours=time_diff).strftime(
+                (reminder_date - timedelta(hours=time_diff)).strftime(
                     '%A, %B %d at %I:%M'
                 )
             )
