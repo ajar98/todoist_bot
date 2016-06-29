@@ -345,6 +345,7 @@ def todoist_notifications():
                         id=job_id
                     )
                     scheduler.start()
+                    add_reminder_job(user_id, task['id'], job_id)
                     send_FB_buttons(
                         sender_id,
                         'An alert has been set for {0}.'.format(
@@ -364,7 +365,6 @@ def todoist_notifications():
                             }
                         ]
                     )
-                    add_reminder_job(user_id, task['id'], job_id)
         elif data['event_name'] == 'item:completed' \
                 or data['event_name'] == 'item:deleted':
             if 'reminder_jobs' in bot_user:
