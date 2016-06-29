@@ -154,6 +154,9 @@ def webhook():
                                 {'user_id': 4876011}
                             )][0]['reminder_jobs'][task_id]
                             print 'Mongo job id: {0}'.format(job_id)
+                            print 'Number of jobs: {0}'.format(
+                                len(scheduler.get_jobs())
+                            )
                             for job in scheduler.get_jobs():
                                 print 'Scheduler job id: {0}'.format(job.id)
                             scheduler.remove_job(job_id)
@@ -409,6 +412,8 @@ def add_reminder_job(reminder_date, sender_id, user_id,
         id=job_id
     )
     print 'New job id: {0}'.format(job.id)
+    for job in scheduler.get_jobs():
+        print 'Scheduler job id: {0}'.format(job.id)
     try:
         scheduler.start()
     except:
@@ -429,10 +434,10 @@ def add_reminder_job(reminder_date, sender_id, user_id,
     send_FB_buttons(
         sender_id,
         'An alert has been set for {0}.'.format(
-            reminder_date.strftime(
-                '%A, %B %d at {0}:%M'.format(
-                    (reminder_date.hour +
-                        time_diff + 24) % 24)
+            (
+                reminder_date - timedelta(hours=time_diff).strftime(
+                    '%A, %B %d at %I:%M'
+                )
             )
         ),
         [
