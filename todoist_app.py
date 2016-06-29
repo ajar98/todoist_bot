@@ -153,9 +153,9 @@ def webhook():
                             job_id = [x for x in handle.bot_users.find(
                                 {'user_id': 4876011}
                             )][0]['reminder_jobs'][task_id]
-                            print job_id
+                            print 'Mongo job id: {0}'.format(job_id)
                             for job in scheduler.get_jobs():
-                                print job.id
+                                print 'Scheduler job id: {0}'.format(job.id)
                             scheduler.remove_job(job_id)
                             remove_reminder_job(
                                 tc.user_id,
@@ -407,6 +407,7 @@ def add_reminder_job(reminder_date, sender_id, user_id,
         minute=reminder_date.minute,
         id=job_id
     )
+    print 'New job id: {0}'.format(job.id)
     try:
         scheduler.start()
     except:
