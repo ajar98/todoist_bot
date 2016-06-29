@@ -148,8 +148,9 @@ def webhook():
                                 tc,
                                 payload.split(':')[1]
                             )
-                        elif 'remove_job' in payload:
+                        elif 'remove_alert' in payload:
                             scheduler.remove_job(payload.split(':')[1])
+                            send_FB_text(sender_id, 'Alert removed.')
         return Response()
 
 
@@ -311,6 +312,8 @@ def todoist_notifications():
         bot_user = [x for x in handle.bot_users.find(
             {'user_id': user_id})][0]
         sender_id = bot_user['sender_id']
+        access_token = bot_user['access_token']
+        tc = TodoistClient(access_token)
         task = data['event_data']
         if data['event_name'] == 'item:added':
             if task['due_date_utc']:
@@ -337,13 +340,17 @@ def todoist_notifications():
                     send_FB_buttons(
                         sender_id,
                         'An alert has been set for {0}.'.format(
-                            reminder_date.strftime('%A, %B %d at %X')
+                            reminder_date.strftime(
+                                '%A, %B %d at {0}:%m'.format(
+                                    (reminder_date.hour +
+                                        tc.tz_info['hours'] + 24) % 24)
+                            )
                         ),
                         [
                             {
                                 'type': 'postback',
                                 'title': 'Remove alert',
-                                'payload': 'remove_job:{0}'.format(job_id)
+                                'payload': 'remove_alert:{0}'.format(job_id)
                             }
                         ]
                     )

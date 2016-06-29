@@ -22,6 +22,7 @@ class TodoistClient():
     def __init__(self, token):
         self.token = token
         self.sync_response = self.api.sync()
+        self.tz_info = self.sync_response['user']['tz_info']
 
     @property
     def api(self):
