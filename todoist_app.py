@@ -313,11 +313,13 @@ def todoist_notifications():
             if task['due_date_utc']:
                 # naivete necessary to compare objects
                 due_date = parse(task['due_date_utc']).replace(tzinfo=None)
+                print 'Due date: {0}'.format(due_date)
                 if due_date < (
                     datetime.now() + timedelta(minutes=REMINDER_OFFSET)
                 ):
                     reminder_date = due_date - \
                         timedelta(minutes=REMINDER_OFFSET)
+                    print 'Reminder date: {0}'.format(reminder_date)
                     scheduler.add_job(
                         send_reminder,
                         args=[sender_id, task, REMINDER_OFFSET],
