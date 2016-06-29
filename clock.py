@@ -25,7 +25,7 @@ handle = connect()
 
 @sched.scheduled_job('cron', hour=13)
 def today_tasks():
-    for entry in handle.access_tokens.find():
+    for entry in handle.bot_users.find():
         if 'access_token' in entry:
         	tc = TodoistClient(entry['access_token'])
         	today_tasks = tc.get_today_tasks()

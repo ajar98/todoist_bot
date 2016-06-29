@@ -52,20 +52,20 @@ def webhook():
             if 'sender' in event:
                 sender_id = event['sender']['id']
                 # get Todoist access token if there is none in MongoDB
-                if handle.access_tokens.find(
+                if handle.bot_users.find(
                     {'sender_id': sender_id}
                 ).count() == 0:
                     get_access_token(sender_id)
-                sender_id_matches = [x for x in handle.access_tokens.find(
+                sender_id_matches = [x for x in handle.bot_users.find(
                     {'sender_id': sender_id})]
                 if sender_id_matches:
                     access_token = sender_id_matches[0]['access_token']
                     tc = TodoistClient(access_token)
                     # add user_id to Mongo object to handle live notifications
-                    if not 'user_id' in [x for x in handle.access_tokens.find(
+                    if not 'user_id' in [x for x in handle.bot_users.find(
                         {'access_token': access_token}
                     )][0]:
-                        handle.access_tokens.update(
+                        handle.bot_users.update(
                             {'access_token': access_token},
                             {
                                 '$set': {
@@ -242,7 +242,7 @@ def todoist_callback(methods=['GET']):
         code = request.args.get('code')
         access_token = get_token(code)
         print 'Access token: {0}'.format(access_token)
-        handle.access_tokens.update(
+        handle.bot_users.update(
             {'access_token': 'temp'},
             {
                 '$set': {
@@ -251,13 +251,13 @@ def todoist_callback(methods=['GET']):
             }
         )
         return 'success' if access_token and \
-            handle.access_tokens.find(
+            handle.bot_users.find(
                 {'access_token': access_token}
             ).count() else 'failure'
 
 
 def get_access_token(sender_id):
-    handle.access_tokens.insert(
+    handle.bot_users.insert(
         {
             'sender_id': sender_id,
             'access_token': 'temp'
@@ -305,11 +305,12 @@ def get_token(code):
 def todoist_notifications():
     if request.method == 'POST':
         data = json.loads(request.data)
+        user_id = data['event_data']['user_id']
+        bot_user = [x for x in handle.bot_users.find(
+            {'user_id': user_id})][0]
+        sender_id = bot_user['sender_id']
+        task = data['event_data']
         if data['event_name'] == 'item:added':
-            user_id = data['event_data']['user_id']
-            sender_id = [x for x in handle.access_tokens.find(
-                {'user_id': user_id})][0]['sender_id']
-            task = data['event_data']
             if task['due_date_utc']:
                 # tz naivete necessary to compare objects
                 due_date = parse(task['due_date_utc']).replace(tzinfo=None)
@@ -318,6 +319,7 @@ def todoist_notifications():
                 ):
                     reminder_date = due_date - \
                         timedelta(minutes=REMINDER_OFFSET)
+                    job_id = uuid4()
                     scheduler.add_job(
                         send_reminder,
                         args=[sender_id, task, REMINDER_OFFSET],
@@ -326,18 +328,35 @@ def todoist_notifications():
                         month=reminder_date.month,
                         day=reminder_date.day,
                         hour=reminder_date.hour,
-                        minute=reminder_date.minute
+                        minute=reminder_date.minute,
+                        id=job_id
                     )
                     scheduler.start()
-        if data['event_name'] == 'item:completed':
-            user_id = data['event_data']['user_id']
-            print json.dumps(data['event_data'], indent=4)
-            sender_id = [x for x in handle.access_tokens.find(
-                {'user_id': user_id})][0]['sender_id']
-            send_FB_text(sender_id, 'A task was just completed.')
-        if data['event_name'] == 'item:deleted':
-            print json.dumps(data['event_data'], indent=4)
-        if data['event_name'] == 'item:updated':
+                    reminder_jobs = bot_user['reminder_jobs'] \
+                        if 'reminder_jobs' in bot_user else {}
+                    reminder_jobs[task['id']] = job_id
+                    handle.bot_users.update(
+                        {'user_id': user_id},
+                        {
+                            '$set': {
+                                'reminder_jobs': reminder_jobs
+                            }
+                        }
+                    )
+        elif data['event_name'] == 'item:completed' or data['event_name'] == 'item:deleted':
+            reminder_jobs = bot_user['reminder_jobs']
+            if task['id'] in reminder_jobs.keys():
+                scheduler.remove_job(reminder_jobs[task['id']])
+                reminder_jobs.pop(task['id'])
+                handle.bot_users.update(
+                    {'user_id': user_id},
+                    {
+                        '$set': {
+                            'reminder_jobs': reminder_jobs
+                        }
+                    }
+                )
+        elif data['event_name'] == 'item:updated':
             print json.dumps(data['event_data'], indent=4)
         return Response()
 
