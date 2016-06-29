@@ -150,14 +150,14 @@ def webhook():
                             )
                         elif 'remove_alert' in payload:
                             task_id = payload.split(':')[1]
-                            remove_reminder_job(
-                                tc.user_id,
-                                task_id
-                            )
                             job_id = [x for x in handle.bot_users.find(
                                 {'user_id': 4876011}
                             )][0]['reminder_jobs'][task_id]
                             scheduler.remove_job(job_id)
+                            remove_reminder_job(
+                                tc.user_id,
+                                task_id
+                            )
                             send_FB_text(sender_id, 'Alert removed.')
         return Response()
 
