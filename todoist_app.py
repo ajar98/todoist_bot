@@ -421,6 +421,7 @@ def add_reminder_job(user_id, task_id, job_id):
     reminder_jobs = bot_user['reminder_jobs'] \
         if 'reminder_jobs' in bot_user else {}
     reminder_jobs[str(task_id)] = job_id
+    print reminder_jobs
     handle.bot_users.update(
         {'user_id': user_id},
         {
