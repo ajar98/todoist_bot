@@ -395,6 +395,7 @@ def remove_reminder_job(user_id, task_id):
 def add_reminder_job(reminder_date, sender_id, user_id,
                      task, time_diff):
     job_id = uuid4().__str__()
+    print 'Job id: {0}'.format(job_id)
     task_id = task['id']
     job = scheduler.add_job(
         send_reminder,
