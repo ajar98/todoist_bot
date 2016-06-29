@@ -334,7 +334,7 @@ def todoist_notifications():
                         id=job_id
                     )
                     scheduler.start()
-                    send_FB_text(
+                    send_FB_buttons(
                         sender_id,
                         'An alert has been set for {0}.'.format(
                             reminder_date.strftime('%A, %B %d at %X')
