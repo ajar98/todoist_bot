@@ -360,18 +360,19 @@ def todoist_notifications():
                     )
         elif data['event_name'] == 'item:completed' \
                 or data['event_name'] == 'item:deleted':
-            reminder_jobs = bot_user['reminder_jobs']
-            if task['id'] in reminder_jobs.keys():
-                scheduler.remove_job(reminder_jobs[task['id']])
-                reminder_jobs.pop(task['id'])
-                handle.bot_users.update(
-                    {'user_id': user_id},
-                    {
-                        '$set': {
-                            'reminder_jobs': reminder_jobs
+            if 'reminder_jobs' in bot_user:
+                reminder_jobs = bot_user['reminder_jobs']
+                if task['id'] in reminder_jobs.keys():
+                    scheduler.remove_job(reminder_jobs[task['id']])
+                    reminder_jobs.pop(task['id'])
+                    handle.bot_users.update(
+                        {'user_id': user_id},
+                        {
+                            '$set': {
+                                'reminder_jobs': reminder_jobs
+                            }
                         }
-                    }
-                )
+                    )
         elif data['event_name'] == 'item:updated':
             print json.dumps(data['event_data'], indent=4)
         return Response()
