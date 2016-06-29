@@ -314,7 +314,7 @@ def todoist_notifications():
                 # naivete necessary to compare objects
                 due_date = parse(task['due_date_utc']).replace(tzinfo=None)
                 print 'Due date: {0}'.format(due_date)
-                if due_date < (
+                if due_date > (
                     datetime.now() + timedelta(minutes=REMINDER_OFFSET)
                 ):
                     reminder_date = due_date - \
@@ -330,6 +330,8 @@ def todoist_notifications():
                         hour=reminder_date.hour,
                         minute=reminder_date.minute
                     )
+                    send_FB_text(sender_id, 'An alert was just set.')
+                send_FB_text(sender_id, 'A task was just added.')
         if data['event_name'] == 'item:completed':
             user_id = data['event_data']['user_id']
             sender_id = [x for x in handle.access_tokens.find(
