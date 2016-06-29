@@ -35,6 +35,7 @@ def connect():
 
 app = Flask(__name__)
 handle = connect()
+print 'Creating scheduler'
 scheduler = BackgroundScheduler()
 
 
