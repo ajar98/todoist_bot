@@ -153,6 +153,9 @@ def webhook():
                             job_id = [x for x in handle.bot_users.find(
                                 {'user_id': 4876011}
                             )][0]['reminder_jobs'][task_id]
+                            print job_id
+                            for job in scheduler.get_jobs():
+                                print job.id
                             scheduler.remove_job(job_id)
                             remove_reminder_job(
                                 tc.user_id,
