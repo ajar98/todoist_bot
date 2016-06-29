@@ -20,7 +20,7 @@ REDIRECT_URI = 'http://pure-hamlet-63323.herokuapp.com/todoist_callback'
 MONGO_DB_ENDPOINT = 'ds021434.mlab.com'
 MONGO_DB_PORT = 21434
 
-REMINDER_OFFSET = 2
+REMINDER_OFFSET = 30
 
 
 def connect():
@@ -311,15 +311,13 @@ def todoist_notifications():
                 {'user_id': user_id})][0]['sender_id']
             task = data['event_data']
             if task['due_date_utc']:
-                # naivete necessary to compare objects
+                # tz naivete necessary to compare objects
                 due_date = parse(task['due_date_utc']).replace(tzinfo=None)
-                print 'Due date: {0}'.format(due_date)
                 if due_date > (
                     datetime.now() + timedelta(minutes=REMINDER_OFFSET)
                 ):
                     reminder_date = due_date - \
                         timedelta(minutes=REMINDER_OFFSET)
-                    print 'Reminder date: {0}'.format(reminder_date)
                     scheduler.add_job(
                         send_reminder,
                         args=[sender_id, task, REMINDER_OFFSET],
@@ -331,23 +329,37 @@ def todoist_notifications():
                         minute=reminder_date.minute
                     )
                     scheduler.start()
-                    send_FB_text(sender_id, 'An alert was just set.')
-                send_FB_text(sender_id, 'A task was just added.')
         if data['event_name'] == 'item:completed':
             user_id = data['event_data']['user_id']
+            print json.dumps(data['event_data'], indent=4)
             sender_id = [x for x in handle.access_tokens.find(
                 {'user_id': user_id})][0]['sender_id']
             send_FB_text(sender_id, 'A task was just completed.')
+        if data['event_name'] == 'item:deleted':
+            print json.dumps(data['event_data'], indent=4)
+        if data['event_name'] == 'item:updated':
+            print json.dumps(data['event_data'], indent=4)
         return Response()
 
 
 def send_reminder(sender_id, task, mins_left):
-    send_FB_text(
+    send_FB_buttons(
         sender_id,
-        'Your task, {0}, is due in {1} minutes'.format(
+        'Your task, "{0}", is due in {1} minutes!'.format(
             task['content'],
             mins_left
-        )
+        ),
+        [
+            {
+                'type': 'postback',
+                'title':
+                'Complete',
+                'payload': '{0}:{1}'.format(
+                    'task_id',
+                    task['id']
+                )
+            },
+        ]
     )
 
 
