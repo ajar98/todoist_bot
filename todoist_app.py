@@ -330,6 +330,7 @@ def todoist_notifications():
                         hour=reminder_date.hour,
                         minute=reminder_date.minute
                     )
+                    scheduler.start()
                     send_FB_text(sender_id, 'An alert was just set.')
                 send_FB_text(sender_id, 'A task was just added.')
         if data['event_name'] == 'item:completed':
