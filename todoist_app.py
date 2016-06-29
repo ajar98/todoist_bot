@@ -69,7 +69,7 @@ def webhook():
                             {'access_token': access_token},
                             {
                                 '$set': {
-                                    'user_id': tc.sync_response['user']['id']
+                                    'user_id': tc.user_id
                                 }
                             }
                         )
@@ -149,7 +149,11 @@ def webhook():
                                 payload.split(':')[1]
                             )
                         elif 'remove_alert' in payload:
-                            remove_reminder_job(payload.split(':')[1])
+                            remove_reminder_job(
+                                tc.user_id,
+                                payload.split(':')[1]
+                            )
+                            scheduler.remove_job(job_id)
                             send_FB_text(sender_id, 'Alert removed.')
         return Response()
 
@@ -327,7 +331,7 @@ def todoist_notifications():
                     job_id = uuid4().__str__()
                     job = scheduler.add_job(
                         send_reminder,
-                        args=[sender_id, task, REMINDER_OFFSET],
+                        args=[sender_id, user_id, task, REMINDER_OFFSET],
                         trigger='cron',
                         year=reminder_date.year,
                         month=reminder_date.month,
@@ -356,29 +360,20 @@ def todoist_notifications():
                             }
                         ]
                     )
-                    reminder_jobs = bot_user['reminder_jobs'] \
-                        if 'reminder_jobs' in bot_user else {}
-                    reminder_jobs[str(task['id'])] = job_id
-                    handle.bot_users.update(
-                        {'user_id': user_id},
-                        {
-                            '$set': {
-                                'reminder_jobs': reminder_jobs
-                            }
-                        }
-                    )
+                    add_reminder_job(task['id'], job_id)
         elif data['event_name'] == 'item:completed' \
                 or data['event_name'] == 'item:deleted':
             if 'reminder_jobs' in bot_user:
                 reminder_jobs = bot_user['reminder_jobs']
                 if str(task['id']) in reminder_jobs.keys():
-                    remove_reminder_job(task['id'])
+                    remove_reminder_job(user_id, task['id'])
+                    scheduler.remove_job(reminder_jobs[str(task['id'])])
         elif data['event_name'] == 'item:updated':
             print json.dumps(data['event_data'], indent=4)
         return Response()
 
 
-def send_reminder(sender_id, task, mins_left):
+def send_reminder(sender_id, user_id, task, mins_left):
     send_FB_buttons(
         sender_id,
         'Your task, "{0}", is due in {1} minutes!'.format(
@@ -397,14 +392,15 @@ def send_reminder(sender_id, task, mins_left):
             },
         ]
     )
-    remove_reminder_job(task['id'])
+    remove_reminder_job(user_id, task['id'])
+    scheduler.remove_job(job_id)
 
 
-def remove_reminder_job(task_id):
+def remove_reminder_job(user_id, task_id):
     bot_user = [x for x in handle.bot_users.find(
         {'user_id': user_id})][0]
     reminder_jobs = bot_user['reminder_jobs']
-    job = reminder_jobs.pop(str(task['id']))
+    job_id = reminder_jobs.pop(str(task_id))
     handle.bot_users.update(
         {'user_id': user_id},
         {
@@ -413,7 +409,22 @@ def remove_reminder_job(task_id):
             }
         }
     )
-    scheduler.remove_job(job['job_id'])
+
+
+def add_reminder_job(task_id, job_id):
+    bot_user = [x for x in handle.bot_users.find(
+        {'user_id': user_id})][0]
+    reminder_jobs = bot_user['reminder_jobs'] \
+        if 'reminder_jobs' in bot_user else {}
+    reminder_jobs[str(task_id)] = job_id
+    handle.bot_users.update(
+        {'user_id': user_id},
+        {
+            '$set': {
+                'reminder_jobs': reminder_jobs
+            }
+        }
+    )
 
 
 def send_FB_message(sender_id, message):
