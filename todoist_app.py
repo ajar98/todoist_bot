@@ -360,7 +360,7 @@ def todoist_notifications():
                             }
                         ]
                     )
-                    add_reminder_job(task['id'], job_id)
+                    add_reminder_job(user_id, task['id'], job_id)
         elif data['event_name'] == 'item:completed' \
                 or data['event_name'] == 'item:deleted':
             if 'reminder_jobs' in bot_user:
@@ -411,7 +411,7 @@ def remove_reminder_job(user_id, task_id):
     )
 
 
-def add_reminder_job(task_id, job_id):
+def add_reminder_job(user_id, task_id, job_id):
     bot_user = [x for x in handle.bot_users.find(
         {'user_id': user_id})][0]
     reminder_jobs = bot_user['reminder_jobs'] \
