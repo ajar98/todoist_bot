@@ -140,14 +140,16 @@ def webhook():
                         print 'Payload: {0}'.format(payload)
                         if payload == 'tasks':
                             send_tasks(sender_id, tc.get_this_week_tasks())
-                        if payload == 'write':
+                        elif payload == 'write':
                             send_write_request(sender_id)
-                        if 'task_id' in payload:
+                        elif 'task_id' in payload:
                             complete_task(
                                 sender_id,
                                 tc,
                                 payload.split(':')[1]
                             )
+                        elif 'remove_job' in payload:
+                            scheduler.remove_job(payload.split(':')[1])
         return Response()
 
 
@@ -319,8 +321,8 @@ def todoist_notifications():
                 ):
                     reminder_date = due_date - \
                         timedelta(minutes=REMINDER_OFFSET)
-                    job_id = uuid4()
-                    scheduler.add_job(
+                    job_id = uuid4().__str__()
+                    job = scheduler.add_job(
                         send_reminder,
                         args=[sender_id, task, REMINDER_OFFSET],
                         trigger='cron',
@@ -332,6 +334,19 @@ def todoist_notifications():
                         id=job_id
                     )
                     scheduler.start()
+                    send_FB_text(
+                        sender_id,
+                        'An alert has been set for {0}.'.format(
+                            reminder_date.strftime('%A, %B %d at %X')
+                        ),
+                        [
+                            {
+                                'type': 'postback',
+                                'title': 'Remove alert',
+                                'payload': 'remove_job:{0}'.format(job_id)
+                            }
+                        ]
+                    )
                     reminder_jobs = bot_user['reminder_jobs'] \
                         if 'reminder_jobs' in bot_user else {}
                     reminder_jobs[task['id']] = job_id
@@ -343,7 +358,8 @@ def todoist_notifications():
                             }
                         }
                     )
-        elif data['event_name'] == 'item:completed' or data['event_name'] == 'item:deleted':
+        elif data['event_name'] == 'item:completed' \
+                or data['event_name'] == 'item:deleted':
             reminder_jobs = bot_user['reminder_jobs']
             if task['id'] in reminder_jobs.keys():
                 scheduler.remove_job(reminder_jobs[task['id']])
