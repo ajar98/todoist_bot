@@ -12,11 +12,13 @@ from dateutil.parser import parse
 from datetime import timedelta, datetime
 from webob import Response
 from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.jobstores.mongodb import MongoDBJobStore
 
 FB_MESSAGES_ENDPOINT = 'https://graph.facebook.com/v2.6/me/messages'
 OAUTH_CODE_ENDPOINT = 'https://todoist.com/oauth/authorize'
 OAUTH_ACCESS_TOKEN_ENDPOINT = 'https://todoist.com/oauth/access_token'
 REDIRECT_URI = 'http://pure-hamlet-63323.herokuapp.com/todoist_callback'
+MONGO_DB_DATABASE = 'todoist_access_tokens'
 MONGO_DB_ENDPOINT = 'ds021434.mlab.com'
 MONGO_DB_PORT = 21434
 
@@ -25,7 +27,7 @@ REMINDER_OFFSET = 30
 
 def connect():
     connection = MongoClient(MONGO_DB_ENDPOINT, MONGO_DB_PORT)
-    handle = connection['todoist_access_tokens']
+    handle = connection[MONGO_DB_DATABASE]
     handle.authenticate(
         os.environ['MONGO_DB_USERNAME'],
         os.environ['MONGO_DB_PWD']
@@ -36,7 +38,15 @@ def connect():
 app = Flask(__name__)
 handle = connect()
 print 'Creating scheduler'
-scheduler = BackgroundScheduler()
+jobstores = {
+    'default': MongoDBJobStore(
+        database=MONGO_DB_DATABASE,
+        collection='jobs',
+        host=MONGO_DB_ENDPOINT,
+        port=MONGO_DB_PORT
+    )
+}
+scheduler = BackgroundScheduler(jobstores=jobstores)
 
 
 @app.route('/webhook', methods=['GET', 'POST'])
