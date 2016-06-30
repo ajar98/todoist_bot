@@ -40,7 +40,7 @@ handle = connect()
 print 'Creating scheduler'
 jobstores = {
     'default': MongoDBJobStore(
-        database=MONGO_DB_DATABASE,
+        database='apscheduler',
         collection='jobs',
         host=MONGO_DB_ENDPOINT,
         port=MONGO_DB_PORT
