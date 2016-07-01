@@ -232,8 +232,9 @@ def write_task(sender_id, tc, message):
 
 
 def complete_task(sender_id, tc, task_id):
+    task = tc.get_item(task_id)
     tc.complete_task(task_id)
-    send_FB_text(sender_id, 'Task completed.')
+    send_FB_text(sender_id, 'Task "{0}" completed.'.format(task['content']))
 
 
 def send_generic_response(sender_id):
@@ -360,15 +361,30 @@ def todoist_notifications():
                     )
         elif data['event_name'] == 'item:completed' \
                 or data['event_name'] == 'item:deleted':
-            print 'MongoDB: {0}'.format(bot_user)
             if 'reminder_jobs' in bot_user:
                 reminder_jobs = bot_user['reminder_jobs']
                 if str(task['id']) in reminder_jobs.keys():
                     remove_reminder_job(user_id, task['id'])
                     scheduler.remove_job(reminder_jobs[str(task['id'])])
         elif data['event_name'] == 'item:updated':
+            print task
             remove_reminder_job(user_id, task['id'])
             scheduler.remove_job(bot_user['reminder_jobs'][str(task['id'])])
+            if task['due_date_utc']:
+                # tz naivete necessary to compare objects
+                due_date = parse(task['due_date_utc']).replace(tzinfo=None)
+                if due_date > (
+                    datetime.now() + timedelta(minutes=REMINDER_OFFSET)
+                ):  # only set alert if it is before the alert would happen
+                    reminder_date = due_date - \
+                        timedelta(minutes=REMINDER_OFFSET)
+                    add_reminder_job(
+                        reminder_date,
+                        sender_id,
+                        user_id,
+                        task,
+                        tc.tz_info['hours']
+                    )
         return Response()
 
 
