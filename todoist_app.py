@@ -52,7 +52,7 @@ def connect():
 app = Flask(__name__)
 app.config['DEBUG'] = True
 handle = connect()
-scheduler = BackgroundScheduler(jobstores={
+scheduler = BlockingScheduler(jobstores={
     'default': MongoDBJobStore(host=MONGO_DB_JOBS_URL)
 })
 
