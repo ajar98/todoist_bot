@@ -360,13 +360,15 @@ def todoist_notifications():
                     )
         elif data['event_name'] == 'item:completed' \
                 or data['event_name'] == 'item:deleted':
+            print 'MongoDB: {0}'.format(bot_user)
             if 'reminder_jobs' in bot_user:
                 reminder_jobs = bot_user['reminder_jobs']
                 if str(task['id']) in reminder_jobs.keys():
                     remove_reminder_job(user_id, task['id'])
                     scheduler.remove_job(reminder_jobs[str(task['id'])])
         elif data['event_name'] == 'item:updated':
-            print json.dumps(data['event_data'], indent=4)
+            remove_reminder_job(user_id, task['id'])
+            scheduler.remove_job(bot_user['reminder_jobs'][str(task['id'])])
         return Response()
 
 
