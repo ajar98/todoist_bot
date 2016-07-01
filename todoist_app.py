@@ -382,6 +382,7 @@ def todoist_notifications():
                         sender_id,
                         user_id,
                         task,
+                        bot_user['reminder_offset'],
                         tc.tz_info['hours']
                     )
         elif data['event_name'] == 'item:completed' \
@@ -399,15 +400,17 @@ def todoist_notifications():
                 # tz naivete necessary to compare objects
                 due_date = parse(task['due_date_utc']).replace(tzinfo=None)
                 if due_date > (
-                    datetime.now() + timedelta(minutes=REMINDER_OFFSET)
+                    datetime.now() + timedelta(
+                        minutes=bot_user['reminder_offset'])
                 ):  # only set alert if it is before the alert would happen
                     reminder_date = due_date - \
-                        timedelta(minutes=REMINDER_OFFSET)
+                        timedelta(minutes=bot_user['reminder_offset'])
                     add_reminder_job(
                         reminder_date,
                         sender_id,
                         user_id,
                         task,
+                        bot_user['reminder_offset'],
                         tc.tz_info['hours']
                     )
         return Response()
@@ -451,12 +454,12 @@ def remove_reminder_job(user_id, task_id):
 
 
 def add_reminder_job(reminder_date, sender_id, user_id,
-                     task, time_diff):
+                     task, reminder_offset, time_diff):
     job_id = uuid4().__str__()
     task_id = task['id']
     job = scheduler.add_job(
         send_reminder,
-        args=[sender_id, user_id, task, REMINDER_OFFSET],
+        args=[sender_id, user_id, task, reminder_offset],
         trigger='cron',
         year=reminder_date.year,
         month=reminder_date.month,
