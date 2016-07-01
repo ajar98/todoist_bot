@@ -425,6 +425,7 @@ def add_reminder_job(reminder_date, sender_id, user_id,
     print 'Job id: {0}'.format(job.id)
     try:
         scheduler.start()
+        print 'Scheduler running'
     except:
         print 'Scheduler running'
     bot_user = [x for x in handle.bot_users.find(
