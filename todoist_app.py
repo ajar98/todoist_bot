@@ -74,6 +74,13 @@ def webhook():
                 if handle.bot_users.find(
                     {'sender_id': sender_id}
                 ).count() == 0:
+                    send_FB_text(
+                        sender_id,
+                        (
+                            'Welcome to TodoistBot! Here you can '
+                            'write and view your tasks from Todoist.'
+                        )
+                    )
                     get_access_token(sender_id)
                 sender_id_matches = [x for x in handle.bot_users.find(
                     {'sender_id': sender_id})]
@@ -295,7 +302,7 @@ def get_access_token(sender_id):
     )
     send_FB_buttons(
         sender_id,
-        'Looks like you haven\'t authorized Todoist.',
+        'But first, it looks like you haven\'t authorized Todoist.',
         [
             {
                 'type': 'web_url',
