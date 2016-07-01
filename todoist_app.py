@@ -33,9 +33,6 @@ MONGO_DB_JOBS_URL = 'mongodb://{0}:{1}@{2}:{3}/{4}'.format(
 )
 
 
-REMINDER_OFFSET = 30
-
-
 def connect():
     connection = MongoClient(
         MONGO_DB_TOKENS_ENDPOINT,
@@ -158,6 +155,18 @@ def webhook():
                         # write a task due a certain date
                         elif ' due ' in message:
                             write_task(sender_id, tc, message)
+                        elif 'alert offset' in message:
+                            new_offset = int(message.replace(
+                                'set alert offset to ', ''
+                            ).replace(' minutes', ''))
+                            handle.bot_users.update(
+                                {'user_id': tc.user_id},
+                                {
+                                    '$set': {
+                                        'reminder_offset': new_offset
+                                    }
+                                }
+                            )
                         else:
                             send_generic_response(sender_id)
                     # button handling
@@ -341,6 +350,15 @@ def get_token(code):
 @app.route('/todoist_notifications', methods=['POST'])
 def todoist_notifications():
     if request.method == 'POST':
+        if not('reminder_offset' in bot_user):
+            handle.bot_users.update(
+                {'user_id': user_id},
+                {
+                    '$set': {
+                        'reminder_offset': 30
+                    }
+                }
+            )
         data = json.loads(request.data)
         user_id = data['event_data']['user_id']
         bot_user = [x for x in handle.bot_users.find(
@@ -357,7 +375,7 @@ def todoist_notifications():
                     datetime.now() + timedelta(minutes=REMINDER_OFFSET)
                 ):  # only set alert if it is before the alert would happen
                     reminder_date = due_date - \
-                        timedelta(minutes=REMINDER_OFFSET)
+                        timedelta(minutes=bot_user['reminder_offset'])
                     add_reminder_job(
                         reminder_date,
                         sender_id,
@@ -478,6 +496,13 @@ def add_reminder_job(reminder_date, sender_id, user_id,
                 )
             }
         ]
+    )
+    send_FB_text(
+        sender_id,
+        (
+            'You can change the amount of time between the alert'
+            ' and the due date by typing "set alert offset to <x> minutes"'
+        )
     )
 
 

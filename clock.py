@@ -43,6 +43,13 @@ def today_tasks():
 					entry['sender_id'],
 					'You have no tasks today! Have a great day!'
 				)
+            # send_FB_text(
+            #     entry['sender_id'],
+            #     (
+            #         'To set when your tasks for the day are sent to you, '
+            #         'type "set day overview time to <date_string>"'
+            #     )
+            # )
 
 
 sched.start()
