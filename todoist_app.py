@@ -53,7 +53,7 @@ app = Flask(__name__)
 handle = connect()
 print 'Creating scheduler'
 jobstores = {
-    'default': MongoDBJobStore(MONGO_DB_JOBS_URL)
+    'default': MongoDBJobStore(host=MONGO_DB_JOBS_URL)
 }
 scheduler = BackgroundScheduler(jobstores=jobstores)
 
