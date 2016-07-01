@@ -163,7 +163,7 @@ def webhook():
                     # button handling
                     if 'postback' in event:
                         payload = event['postback']['payload']
-                        print 'Payload: {0}'.format(payload)
+                        app.logger.info('Payload: {0}'.format(payload))
                         if payload == 'tasks':
                             send_tasks(sender_id, tc.get_this_week_tasks())
                         elif payload == 'write':
@@ -278,7 +278,7 @@ def todoist_callback(methods=['GET']):
         state = request.args.get('state', '')
         code = request.args.get('code')
         access_token = get_token(code)
-        print 'Access token: {0}'.format(access_token)
+        app.logger.info('Access token: {0}'.format(access_token))
         handle.bot_users.update(
             {'access_token': 'temp'},
             {
@@ -495,12 +495,12 @@ def send_FB_message(sender_id, message):
         ),
         headers={'content-type': 'application/json'})
     if not fb_response.ok:
-        print 'Not OK: {0}: {1}'.format(
+        app.logger.warning('Not OK: {0}: {1}'.format(
             fb_response.status_code,
             fb_response.text
-        )
+        ))
     else:
-        print 'OK: {0}'.format(200)
+        app.logger.info('OK: {0}'.format(200))
 
 
 def send_FB_text(sender_id, text):
