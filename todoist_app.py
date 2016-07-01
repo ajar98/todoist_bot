@@ -50,6 +50,7 @@ def connect():
 
 
 app = Flask(__name__)
+app.config['DEBUG'] = True
 handle = connect()
 scheduler = BackgroundScheduler(jobstores={
     'default': MongoDBJobStore(host=MONGO_DB_JOBS_URL)
@@ -389,7 +390,6 @@ def send_reminder(sender_id, user_id, task, mins_left):
         ]
     )
     remove_reminder_job(user_id, task['id'])
-    scheduler.remove_job(job_id)
 
 
 def remove_reminder_job(user_id, task_id):
