@@ -232,7 +232,7 @@ def write_task(sender_id, tc, message):
 
 
 def complete_task(sender_id, tc, task_id):
-    task = tc.get_item(task_id)
+    task = tc.api.get_item(task_id)
     tc.complete_task(task_id)
     send_FB_text(sender_id, 'Task "{0}" completed.'.format(task['content']))
 
