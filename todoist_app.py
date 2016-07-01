@@ -350,6 +350,10 @@ def get_token(code):
 @app.route('/todoist_notifications', methods=['POST'])
 def todoist_notifications():
     if request.method == 'POST':
+        data = json.loads(request.data)
+        user_id = data['event_data']['user_id']
+        bot_user = [x for x in handle.bot_users.find(
+            {'user_id': user_id})][0]
         if not('reminder_offset' in bot_user):
             handle.bot_users.update(
                 {'user_id': user_id},
@@ -359,10 +363,6 @@ def todoist_notifications():
                     }
                 }
             )
-        data = json.loads(request.data)
-        user_id = data['event_data']['user_id']
-        bot_user = [x for x in handle.bot_users.find(
-            {'user_id': user_id})][0]
         sender_id = bot_user['sender_id']
         access_token = bot_user['access_token']
         tc = TodoistClient(access_token)
