@@ -18,16 +18,30 @@ FB_MESSAGES_ENDPOINT = 'https://graph.facebook.com/v2.6/me/messages'
 OAUTH_CODE_ENDPOINT = 'https://todoist.com/oauth/authorize'
 OAUTH_ACCESS_TOKEN_ENDPOINT = 'https://todoist.com/oauth/access_token'
 REDIRECT_URI = 'http://pure-hamlet-63323.herokuapp.com/todoist_callback'
-MONGO_DB_DATABASE = 'todoist_access_tokens'
-MONGO_DB_ENDPOINT = 'ds021434.mlab.com'
-MONGO_DB_PORT = 21434
+MONGO_DB_TOKENS_DATABASE = 'todoist_access_tokens'
+MONGO_DB_TOKENS_ENDPOINT = 'ds021434.mlab.com'
+MONGO_DB_TOKENS_PORT = 21434
+MONGO_DB_JOBS_DATABASE = 'apscheduler'
+MONGO_DB_JOBS_ENDPOINT = 'ds011715.mlab.com'
+MONGO_DB_JOBS_PORT = 11715
+MONGO_DB_JOBS_URL = 'mongodb://{0}:{1}@{2}:{3}/{4}'.format(
+    os.environ['MONGO_DB_USERNAME'],
+    os.environ['MONGO_DB_PWD'],
+    MONGO_DB_JOBS_ENDPOINT,
+    MONGO_DB_JOBS_PORT,
+    MONGO_DB_JOBS_DATABASE
+)
+
 
 REMINDER_OFFSET = 30
 
 
 def connect():
-    connection = MongoClient(MONGO_DB_ENDPOINT, MONGO_DB_PORT)
-    handle = connection[MONGO_DB_DATABASE]
+    connection = MongoClient(
+        MONGO_DB_TOKENS_ENDPOINT,
+        MONGO_DB_TOKENS_PORT
+    )
+    handle = connection[MONGO_DB_TOKENS_DATABASE]
     handle.authenticate(
         os.environ['MONGO_DB_USERNAME'],
         os.environ['MONGO_DB_PWD']
@@ -39,12 +53,7 @@ app = Flask(__name__)
 handle = connect()
 print 'Creating scheduler'
 jobstores = {
-    'default': MongoDBJobStore(
-        database='apscheduler',
-        collection='jobs',
-        host=MONGO_DB_ENDPOINT,
-        port=MONGO_DB_PORT
-    )
+    'default': MongoDBJobStore(MONGO_DB_JOBS_URL)
 }
 scheduler = BackgroundScheduler(jobstores=jobstores)
 
