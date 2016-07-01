@@ -51,11 +51,9 @@ def connect():
 
 app = Flask(__name__)
 handle = connect()
-print 'Creating scheduler'
-jobstores = {
+scheduler = BackgroundScheduler(jobstores={
     'default': MongoDBJobStore(host=MONGO_DB_JOBS_URL)
-}
-scheduler = BackgroundScheduler(jobstores=jobstores)
+})
 
 
 @app.route('/webhook', methods=['GET', 'POST'])
@@ -171,14 +169,8 @@ def webhook():
                         elif 'remove_alert' in payload:
                             task_id = payload.split(':')[1]
                             job_id = [x for x in handle.bot_users.find(
-                                {'user_id': 4876011}
+                                {'user_id': tc.user_id}
                             )][0]['reminder_jobs'][task_id]
-                            print 'Mongo job id: {0}'.format(job_id)
-                            print 'Number of jobs: {0}'.format(
-                                len(scheduler.get_jobs())
-                            )
-                            for job in scheduler.get_jobs():
-                                print 'Scheduler job id: {0}'.format(job.id)
                             scheduler.remove_job(job_id)
                             remove_reminder_job(
                                 tc.user_id,
@@ -418,7 +410,6 @@ def remove_reminder_job(user_id, task_id):
 def add_reminder_job(reminder_date, sender_id, user_id,
                      task, time_diff):
     job_id = uuid4().__str__()
-    print 'Job id: {0}'.format(job_id)
     task_id = task['id']
     job = scheduler.add_job(
         send_reminder,
@@ -431,9 +422,6 @@ def add_reminder_job(reminder_date, sender_id, user_id,
         minute=reminder_date.minute,
         id=job_id
     )
-    print 'New job id: {0}'.format(job.id)
-    for job in scheduler.get_jobs():
-        print 'Scheduler job id: {0}'.format(job.id)
     try:
         scheduler.start()
     except:
@@ -456,7 +444,7 @@ def add_reminder_job(reminder_date, sender_id, user_id,
         'An alert has been set for {0}.'.format(
             (
                 (reminder_date + timedelta(hours=time_diff)).strftime(
-                    '%A, %B %d at %I:%M'
+                    '%A, %B %d at %-I:%M %p'
                 )
             )
         ),
