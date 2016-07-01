@@ -11,7 +11,7 @@ from pymongo import MongoClient
 from dateutil.parser import parse
 from datetime import timedelta, datetime
 from webob import Response
-from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.jobstores.mongodb import MongoDBJobStore
 
 FB_MESSAGES_ENDPOINT = 'https://graph.facebook.com/v2.6/me/messages'
@@ -52,7 +52,7 @@ def connect():
 app = Flask(__name__)
 app.config['DEBUG'] = True
 handle = connect()
-scheduler = BlockingScheduler(jobstores={
+scheduler = BackgroundScheduler(jobstores={
     'default': MongoDBJobStore(host=MONGO_DB_JOBS_URL)
 })
 
