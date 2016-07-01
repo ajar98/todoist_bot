@@ -167,6 +167,7 @@ def webhook():
                                     }
                                 }
                             )
+                            send_FB_text(sender_id, 'Alert settings changed.')
                         else:
                             send_generic_response(sender_id)
                     # button handling
