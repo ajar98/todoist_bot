@@ -260,7 +260,7 @@ class TodoistAPI(object):
         """
         post_data = {
             'token': self.token,
-            'sync_token': self.sync_token,
+            'sync_token': *,
             'day_orders_timestamp': self.state['day_orders_timestamp'],
             'include_notification_settings': 1,
             'resource_types': json_dumps(['all']),
