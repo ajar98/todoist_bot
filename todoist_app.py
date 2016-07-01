@@ -422,6 +422,7 @@ def add_reminder_job(reminder_date, sender_id, user_id,
         minute=reminder_date.minute,
         id=job_id
     )
+    print 'Job id: {0}'.format(job.id)
     try:
         scheduler.start()
     except:
