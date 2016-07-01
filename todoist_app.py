@@ -422,12 +422,7 @@ def add_reminder_job(reminder_date, sender_id, user_id,
         minute=reminder_date.minute,
         id=job_id
     )
-    print 'Job id: {0}'.format(job.id)
-    # try:
-    #     scheduler.start()
-    #     print 'Scheduler running'
-    # except:
-    #     print 'Scheduler running'
+    scheduler.start()
     bot_user = [x for x in handle.bot_users.find(
         {'user_id': user_id})][0]
     reminder_jobs = bot_user['reminder_jobs'] \
