@@ -372,7 +372,8 @@ def todoist_notifications():
                 # tz naivete necessary to compare objects
                 due_date = parse(task['due_date_utc']).replace(tzinfo=None)
                 if due_date > (
-                    datetime.now() + timedelta(minutes=REMINDER_OFFSET)
+                    datetime.now() + timedelta(
+                        minutes=bot_user['reminder_offset'])
                 ):  # only set alert if it is before the alert would happen
                     reminder_date = due_date - \
                         timedelta(minutes=bot_user['reminder_offset'])
