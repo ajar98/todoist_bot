@@ -11,7 +11,7 @@ from pymongo import MongoClient
 from dateutil.parser import parse
 from datetime import timedelta, datetime
 from webob import Response
-from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.jobstores.mongodb import MongoDBJobStore
 
 FB_MESSAGES_ENDPOINT = 'https://graph.facebook.com/v2.6/me/messages'
