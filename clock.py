@@ -6,7 +6,7 @@ from todoist_app import send_tasks, send_FB_text
 from todoist_app import MONGO_DB_ENDPOINT, MONGO_DB_PORT,
 MONGO_DB_TOKENS_DATABASE
 from dateutil.parser import parse
-from datetime import datetime
+from datetime import timedelta, datetime
 from uuid import uuid4
 
 
@@ -56,7 +56,7 @@ if __name__ == '__main__':
     for entry in handle.bot_users.find():
         tc = TodoistClient(entry['access_token'])
         if 'agenda_time' not in entry:
-            agenda_time = parse('6 AM') + tc.tz_info['hours']
+            agenda_time = parse('6 AM') + timedelta(hours=tc.tz_info['hours'])
             handle.bot_users.update(
                 {'sender_id': entry['sender_id']},
                 {

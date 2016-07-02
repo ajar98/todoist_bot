@@ -183,7 +183,8 @@ def webhook():
                             )
                             try:
                                 new_agenda_time = \
-                                    parse(date_string) + tc.tz_info['hours']
+                                    parse(date_string) + \
+                                    timedelta(hours=tc.tz_info['hours'])
                             except ValueError:
                                 send_FB_text(
                                     sender_id,
