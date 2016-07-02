@@ -157,18 +157,25 @@ def webhook():
                         elif ' due ' in message:
                             write_task(sender_id, tc, message)
                         elif 'alert offset' in message:
-                            new_offset = int(message.replace(
-                                'set alert offset to ', ''
-                            ).replace(' minutes', ''))
-                            handle.bot_users.update(
-                                {'user_id': tc.user_id},
-                                {
-                                    '$set': {
-                                        'reminder_offset': new_offset
+                            try:
+                                new_offset = int(message.replace(
+                                    'set alert offset to ', ''
+                                ).split(' ')[0])
+                            except ValueError:
+                                send_FB_text(sender_id, 'Invalid input.')
+                            else:
+                                handle.bot_users.update(
+                                    {'user_id': tc.user_id},
+                                    {
+                                        '$set': {
+                                            'reminder_offset': new_offset
+                                        }
                                     }
-                                }
-                            )
-                            send_FB_text(sender_id, 'Alert settings changed.')
+                                )
+                                send_FB_text(
+                                    sender_id,
+                                    'Alert settings changed.'
+                                )
                         else:
                             send_generic_response(sender_id)
                     # button handling
