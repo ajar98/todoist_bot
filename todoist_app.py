@@ -176,6 +176,32 @@ def webhook():
                                     sender_id,
                                     'Alert settings changed.'
                                 )
+                        elif 'set day overview time to ' in message:
+                            date_string = message.replace(
+                                'set day overview time to ',
+                                ''
+                            )
+                            try:
+                                new_agenda_time = \
+                                    parse(date_string) + tc.tz_info['hours']
+                            except ValueError:
+                                send_FB_text(
+                                    sender_id,
+                                    'Invalid date string. Try again'
+                                )
+                            else:
+                                handle.bot_users.update(
+                                    {'sender_id': entry['sender_id']},
+                                    {
+                                        '$set': {
+                                            'agenda_time': agenda_time
+                                        }
+                                    }
+                                )
+                                send_FB_text(
+                                    sender_id,
+                                    'Day overview time updated.'
+                                )
                         else:
                             send_generic_response(sender_id)
                     # button handling
