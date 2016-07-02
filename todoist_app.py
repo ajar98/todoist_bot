@@ -12,6 +12,7 @@ from dateutil.parser import parse
 from datetime import timedelta, datetime
 from webob import Response
 from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.schedulers import SchedulerAlreadyRunningError
 from apscheduler.jobstores.mongodb import MongoDBJobStore
 
 FB_MESSAGES_ENDPOINT = 'https://graph.facebook.com/v2.6/me/messages'
@@ -469,7 +470,10 @@ def add_reminder_job(reminder_date, sender_id, user_id,
         minute=reminder_date.minute,
         id=job_id
     )
-    scheduler.start()
+    try:
+        scheduler.start()
+    except SchedulerAlreadyRunningError:
+        app.logger.info('Scheduler running')
     bot_user = [x for x in handle.bot_users.find(
         {'user_id': user_id})][0]
     reminder_jobs = bot_user['reminder_jobs'] \
