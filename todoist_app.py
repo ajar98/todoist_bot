@@ -195,7 +195,7 @@ def webhook():
                                     {'sender_id': sender_id},
                                     {
                                         '$set': {
-                                            'agenda_time': agenda_time
+                                            'agenda_time': new_agenda_time
                                         }
                                     }
                                 )
