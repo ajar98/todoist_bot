@@ -31,20 +31,20 @@ def today_tasks(sender_id, tc):
     today_tasks = tc.get_today_tasks()
     if today_tasks:
         send_FB_text(
-            entry['sender_id'],
+            sender_id,
             'Here are your tasks for today:'
         )
         send_tasks(
-            entry['sender_id'],
+            sender_id,
             today_tasks
         )
     else:
         send_FB_text(
-            entry['sender_id'],
+            sender_id,
             'You have no tasks today! Have a great day!'
         )
     send_FB_text(
-        entry['sender_id'],
+        sender_id,
         (
             'To set when your tasks for the day are sent to you, '
             'type "set day overview time to <date_string>"'
