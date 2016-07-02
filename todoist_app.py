@@ -192,7 +192,7 @@ def webhook():
                                 )
                             else:
                                 handle.bot_users.update(
-                                    {'sender_id': entry['sender_id']},
+                                    {'sender_id': sender_id},
                                     {
                                         '$set': {
                                             'agenda_time': agenda_time
