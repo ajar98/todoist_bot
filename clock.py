@@ -56,7 +56,7 @@ if __name__ == '__main__':
     for entry in handle.bot_users.find():
         tc = TodoistClient(entry['access_token'])
         if 'agenda_time' not in entry:
-            agenda_time = parse('6 AM') + timedelta(hours=tc.tz_info['hours'])
+            agenda_time = parse('6 AM') - timedelta(hours=tc.tz_info['hours'])
             handle.bot_users.update(
                 {'sender_id': entry['sender_id']},
                 {
