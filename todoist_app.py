@@ -435,8 +435,9 @@ def todoist_notifications():
                     task['content']
                 )
             )
-            remove_reminder_job(user_id, task['id'])
-            scheduler.remove_job(bot_user['reminder_jobs'][str(task['id'])])
+            if str(task['id']) in reminder_jobs.keys():
+                remove_reminder_job(user_id, task['id'])
+                scheduler.remove_job(reminder_jobs[str(task['id'])])
             if task['due_date_utc']:
                 # tz naivete necessary to compare objects
                 due_date = parse(task['due_date_utc']).replace(tzinfo=None)
