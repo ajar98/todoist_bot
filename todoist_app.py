@@ -430,7 +430,7 @@ def todoist_notifications():
                     scheduler.remove_job(reminder_jobs[str(task['id'])])
         elif data['event_name'] == 'item:updated':
             send_FB_text(
-                sender_id
+                sender_id,
                 '\"{0}\" was just updated.'.format(
                     task['content']
                 )
