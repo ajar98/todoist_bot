@@ -429,7 +429,12 @@ def todoist_notifications():
                     remove_reminder_job(user_id, task['id'])
                     scheduler.remove_job(reminder_jobs[str(task['id'])])
         elif data['event_name'] == 'item:updated':
-            send_FB_text('"{0}" was just updated.'.format(task['content']))
+            send_FB_text(
+                sender_id
+                '"{0}" was just updated.'.format(
+                    task['content']
+                )
+            )
             remove_reminder_job(user_id, task['id'])
             scheduler.remove_job(bot_user['reminder_jobs'][str(task['id'])])
             if task['due_date_utc']:
