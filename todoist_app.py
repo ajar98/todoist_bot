@@ -435,6 +435,7 @@ def todoist_notifications():
                     task['content']
                 )
             )
+            reminder_jobs = bot_user['reminder_jobs']
             if str(task['id']) in reminder_jobs.keys():
                 remove_reminder_job(user_id, task['id'])
                 scheduler.remove_job(reminder_jobs[str(task['id'])])
