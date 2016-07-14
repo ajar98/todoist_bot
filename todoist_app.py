@@ -431,7 +431,7 @@ def todoist_notifications():
         elif data['event_name'] == 'item:updated':
             send_FB_text(
                 sender_id
-                '"{0}" was just updated.'.format(
+                '\"{0}\" was just updated.'.format(
                     task['content']
                 )
             )
