@@ -53,6 +53,7 @@ def today_tasks(sender_id, tc):
 
 
 if __name__ == '__main__':
+    print 'clock'
     for entry in handle.bot_users.find():
         tc = TodoistClient(entry['access_token'])
         if 'agenda_time' not in entry:

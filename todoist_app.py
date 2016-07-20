@@ -429,12 +429,6 @@ def todoist_notifications():
                     remove_reminder_job(user_id, task['id'])
                     scheduler.remove_job(reminder_jobs[str(task['id'])])
         elif data['event_name'] == 'item:updated':
-            send_FB_text(
-                sender_id,
-                '\"{0}\" was just updated.'.format(
-                    task['content']
-                )
-            )
             reminder_jobs = bot_user['reminder_jobs']
             if str(task['id']) in reminder_jobs.keys():
                 remove_reminder_job(user_id, task['id'])
@@ -530,7 +524,8 @@ def add_reminder_job(reminder_date, sender_id, user_id,
     )
     send_FB_buttons(
         sender_id,
-        'An alert has been set for {0}.'.format(
+        'An alert has been set for task {0} at {1}.'.format(
+            task['content'],
             (
                 (reminder_date + timedelta(hours=time_diff)).strftime(
                     '%A, %B %d at %-I:%M %p'
