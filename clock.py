@@ -52,29 +52,28 @@ def today_tasks(sender_id, tc):
     )
 
 
-if __name__ == '__main__':
-    print 'clock'
-    for entry in handle.bot_users.find():
-        tc = TodoistClient(entry['access_token'])
-        if 'agenda_time' not in entry:
-            agenda_time = parse('6 AM') - timedelta(hours=tc.tz_info['hours'])
-            handle.bot_users.update(
-                {'sender_id': entry['sender_id']},
-                {
-                    '$set': {
-                        'agenda_time': agenda_time
-                    }
+print 'clock'
+for entry in handle.bot_users.find():
+    tc = TodoistClient(entry['access_token'])
+    if 'agenda_time' not in entry:
+        agenda_time = parse('6 AM') - timedelta(hours=tc.tz_info['hours'])
+        handle.bot_users.update(
+            {'sender_id': entry['sender_id']},
+            {
+                '$set': {
+                    'agenda_time': agenda_time
                 }
-            )
-        else:
-            agenda_time = entry['agenda_time']
-        job_id = uuid4().__str__()
-        job = scheduler.add_job(
-            today_tasks,
-            args=[entry['sender_id'], tc],
-            trigger='cron',
-            hour=agenda_time.hour,
-            minute=agenda_time.minute,
-            id=job_id
+            }
         )
-    sched.start()
+    else:
+        agenda_time = entry['agenda_time']
+    job_id = uuid4().__str__()
+    job = scheduler.add_job(
+        today_tasks,
+        args=[entry['sender_id'], tc],
+        trigger='cron',
+        hour=agenda_time.hour,
+        minute=agenda_time.minute,
+        id=job_id
+    )
+sched.start()
