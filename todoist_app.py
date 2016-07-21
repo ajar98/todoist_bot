@@ -234,6 +234,8 @@ def webhook():
                                 tc,
                                 payload.split(':')[1]
                             )
+                        elif 'postpone' in payload:
+                            send_FB_text(sender_id, 'Enter a new date string.')
                         elif 'remove_alert' in payload:
                             task_id = payload.split(':')[1]
                             job_id = [x for x in handle.bot_users.find(
