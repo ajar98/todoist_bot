@@ -5,6 +5,7 @@ from client import TodoistClient
 from todoist_app import send_tasks, send_FB_text
 from todoist_app import MONGO_DB_TOKENS_ENDPOINT, MONGO_DB_TOKENS_PORT
 from todoist_app import MONGO_DB_TOKENS_DATABASE
+from todoist_app import MONGO_DB_JOBS_URL
 from dateutil.parser import parse
 from datetime import timedelta, datetime
 from uuid import uuid4
@@ -23,7 +24,9 @@ def connect():
     return handle
 
 
-sched = BlockingScheduler()
+scheduler = BackgroundScheduler(jobstores={
+    'default': MongoDBJobStore(host=MONGO_DB_JOBS_URL)
+})
 handle = connect()
 
 
@@ -53,23 +56,19 @@ def today_tasks(sender_id, tc):
 
 
 if __name__ == '__main__':
-    print 'clock'
     for entry in handle.bot_users.find():
         tc = TodoistClient(entry['access_token'])
-        if 'agenda_time' not in entry:
-            agenda_time = parse('6 AM') - timedelta(hours=tc.tz_info['hours'])
-            handle.bot_users.update(
-                {'sender_id': entry['sender_id']},
-                {
-                    '$set': {
-                        'agenda_time': agenda_time
-                    }
-                }
-            )
-        else:
-            agenda_time = entry['agenda_time']
         job_id = uuid4().__str__()
-        job = sched.add_job(
+        agenda_time = parse('6 AM') - timedelta(hours=tc.tz_info['hours'])
+        handle.bot_users.update(
+            {'sender_id': entry['sender_id']},
+            {
+                '$set': {
+                    'agenda_time_id': job_id
+                }
+            }
+        )
+        job = scheduler.add_job(
             today_tasks,
             args=[entry['sender_id'], tc],
             trigger='cron',
@@ -77,4 +76,4 @@ if __name__ == '__main__':
             minute=agenda_time.minute,
             id=job_id
         )
-    sched.start()
+    scheduler.start()

@@ -191,18 +191,26 @@ def webhook():
                                     'Invalid date string. Try again'
                                 )
                             else:
-                                handle.bot_users.update(
-                                    {'sender_id': sender_id},
-                                    {
-                                        '$set': {
-                                            'agenda_time': new_agenda_time
-                                        }
-                                    }
-                                )
-                                send_FB_text(
-                                    sender_id,
-                                    'Day overview time updated.'
-                                )
+                                bot_user = [x for x in handle.bot_users.find(
+                                    {'user_id': user_id})][0]
+                                agenda_time_id = bot_user['agenda_time_id'] \
+                                    if 'agenda_time_id' in bot_user else None
+                                if agenda_time_id:
+                                    scheduler.reschedule_job(
+                                        agenda_time_id,
+                                        trigger='cron',
+                                        hour=new_agenda_time.hour,
+                                        minute=new_agenda_time.minute
+                                    )
+                                    send_FB_text(
+                                        sender_id,
+                                        'Day overview time updated.'
+                                    )
+                                else:
+                                    send_FB_text(
+                                        sender_id,
+                                        'No day overview scheduled.'
+                                    )
                         else:
                             send_generic_response(sender_id)
                     # button handling
