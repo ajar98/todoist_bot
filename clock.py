@@ -69,7 +69,7 @@ if __name__ == '__main__':
         else:
             agenda_time = entry['agenda_time']
         job_id = uuid4().__str__()
-        job = scheduler.add_job(
+        job = sched.add_job(
             today_tasks,
             args=[entry['sender_id'], tc],
             trigger='cron',
