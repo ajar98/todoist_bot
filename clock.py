@@ -3,7 +3,7 @@ import os
 from pymongo import MongoClient
 from client import TodoistClient
 from todoist_app import send_tasks, send_FB_text
-from todoist_app import MONGO_DB_ENDPOINT, MONGO_DB_PORT
+from todoist_app import MONGO_DB_TOKENS_ENDPOINT, MONGO_DB_TOKENS_PORT
 from todoist_app import MONGO_DB_TOKENS_DATABASE
 from dateutil.parser import parse
 from datetime import timedelta, datetime
