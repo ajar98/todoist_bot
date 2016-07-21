@@ -15,7 +15,9 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers import SchedulerAlreadyRunningError
 from apscheduler.jobstores.mongodb import MongoDBJobStore
 
-FB_MESSAGES_ENDPOINT = 'https://graph.facebook.com/v2.6/me/messages'
+FB_ENDPOINT = 'https://graph.facebook.com/v2.6/me/{0}'
+FB_MESSAGES_ENDPOINT = FB_ENDPOINT.format('messages')
+FB_THREAD_SETTINGS_ENDPOINT = FB_ENDPOINT.format('thread_settings')
 OAUTH_CODE_ENDPOINT = 'https://todoist.com/oauth/authorize'
 OAUTH_ACCESS_TOKEN_ENDPOINT = 'https://todoist.com/oauth/access_token'
 REDIRECT_URI = 'http://pure-hamlet-63323.herokuapp.com/todoist_callback'
@@ -587,6 +589,39 @@ def today_tasks(sender_id, tc):
     )
 
 
+def send_persistent_menu():
+    fb_response = requests.post(
+        FB_THREAD_SETTINGS_ENDPOINT,
+        params={'access_token': os.environ['FB_APP_TOKEN']},
+        data=json.dumps(
+            {
+                'setting_type': 'call_to_actions',
+                'thread_state': 'existing_thread',
+                'call_to_actions': [
+                    {
+                        'type': 'postback',
+                        'title': 'View tasks',
+                        'payload': 'tasks'
+                    },
+                    {
+                        'type': 'postback',
+                        'title': 'Write tasks',
+                        'payload': 'write'
+                    }
+                ]
+            }
+        ),
+        headers={'content-type': 'application/json'}
+    )
+    if not fb_response.ok:
+        app.logger.warning('Not OK: {0}: {1}'.format(
+            fb_response.status_code,
+            fb_response.text
+        ))
+    else:
+        app.logger.info('OK: {0}'.format(200))
+
+
 def send_FB_message(sender_id, message):
     fb_response = requests.post(
         FB_MESSAGES_ENDPOINT,
@@ -599,7 +634,8 @@ def send_FB_message(sender_id, message):
                 'message': message
             }
         ),
-        headers={'content-type': 'application/json'})
+        headers={'content-type': 'application/json'}
+    )
     if not fb_response.ok:
         app.logger.warning('Not OK: {0}: {1}'.format(
             fb_response.status_code,
@@ -637,3 +673,4 @@ def send_FB_buttons(sender_id, text, buttons):
 if __name__ == '__main__':
     scheduler.start()
     app.run(host='0.0.0.0', port=5000)
+    send_persistent_menu()
