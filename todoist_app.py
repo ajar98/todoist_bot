@@ -250,7 +250,7 @@ def send_tasks(sender_id, tasks):
     for task in tasks:
         send_FB_buttons(
             sender_id,
-            '* {0} (Due {1})'.format(
+            '{0} (Due {1})'.format(
                 task['content'],
                 task['date_string'] if task['date_string'] else 'never'
             ),
