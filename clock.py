@@ -3,8 +3,8 @@ import os
 from pymongo import MongoClient
 from client import TodoistClient
 from todoist_app import send_tasks, send_FB_text
-from todoist_app import MONGO_DB_ENDPOINT, MONGO_DB_PORT,
-MONGO_DB_TOKENS_DATABASE
+from todoist_app import MONGO_DB_ENDPOINT, MONGO_DB_PORT
+from todoist_app import MONGO_DB_TOKENS_DATABASE
 from dateutil.parser import parse
 from datetime import timedelta, datetime
 from uuid import uuid4
@@ -52,28 +52,29 @@ def today_tasks(sender_id, tc):
     )
 
 
-print 'clock'
-for entry in handle.bot_users.find():
-    tc = TodoistClient(entry['access_token'])
-    if 'agenda_time' not in entry:
-        agenda_time = parse('6 AM') - timedelta(hours=tc.tz_info['hours'])
-        handle.bot_users.update(
-            {'sender_id': entry['sender_id']},
-            {
-                '$set': {
-                    'agenda_time': agenda_time
+if __name__ == '__main__':
+    print 'clock'
+    for entry in handle.bot_users.find():
+        tc = TodoistClient(entry['access_token'])
+        if 'agenda_time' not in entry:
+            agenda_time = parse('6 AM') - timedelta(hours=tc.tz_info['hours'])
+            handle.bot_users.update(
+                {'sender_id': entry['sender_id']},
+                {
+                    '$set': {
+                        'agenda_time': agenda_time
+                    }
                 }
-            }
+            )
+        else:
+            agenda_time = entry['agenda_time']
+        job_id = uuid4().__str__()
+        job = scheduler.add_job(
+            today_tasks,
+            args=[entry['sender_id'], tc],
+            trigger='cron',
+            hour=agenda_time.hour,
+            minute=agenda_time.minute,
+            id=job_id
         )
-    else:
-        agenda_time = entry['agenda_time']
-    job_id = uuid4().__str__()
-    job = scheduler.add_job(
-        today_tasks,
-        args=[entry['sender_id'], tc],
-        trigger='cron',
-        hour=agenda_time.hour,
-        minute=agenda_time.minute,
-        id=job_id
-    )
-sched.start()
+    sched.start()
