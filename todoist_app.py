@@ -196,11 +196,14 @@ def webhook():
                                 agenda_time_id = bot_user['agenda_time_id'] \
                                     if 'agenda_time_id' in bot_user else None
                                 if agenda_time_id:
-                                    scheduler.reschedule_job(
-                                        agenda_time_id,
+                                    scheduler.remove_job(agenda_time_id)
+                                    agenda_job = scheduler.add_job(
+                                        today_tasks,
+                                        args=[entry['sender_id'], tc],
                                         trigger='cron',
                                         hour=new_agenda_time.hour,
-                                        minute=new_agenda_time.minute
+                                        minute=new_agenda_time.minute,
+                                        id=agenda_time_id
                                     )
                                     send_FB_text(
                                         sender_id,
