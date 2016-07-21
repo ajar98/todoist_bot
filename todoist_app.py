@@ -160,6 +160,15 @@ def webhook():
                         # write a task due a certain date
                         elif ' due ' in message:
                             write_task(sender_id, tc, message)
+                        elif 'due ' in message:
+                            date_string = message.split(' ')[1]
+                            j = 0
+                            old_event = data[i]
+                            while 'postback' not in old_event:
+                                old_event = data[i - j]
+                            old_payload = old_event['postback']['payload']
+                            task_id = old_payload.split('task_id:')[1]
+                            print task_id
                         elif 'alert offset' in message:
                             try:
                                 new_offset = int(message.replace(
@@ -235,7 +244,13 @@ def webhook():
                                 payload.split(':')[1]
                             )
                         elif 'postpone' in payload:
-                            send_FB_text(sender_id, 'Enter a new date string.')
+                            send_FB_text(
+                                sender_id,
+                                (
+                                    'Enter a new date string as follows: '
+                                    'due <date_string>'
+                                )
+                            )
                         elif 'remove_alert' in payload:
                             task_id = payload.split(':')[1]
                             job_id = [x for x in handle.bot_users.find(
