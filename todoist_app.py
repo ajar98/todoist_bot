@@ -192,7 +192,7 @@ def webhook():
                                 )
                             else:
                                 bot_user = [x for x in handle.bot_users.find(
-                                    {'user_id': user_id})][0]
+                                    {'access_token': access_token})][0]
                                 agenda_time_id = bot_user['agenda_time_id'] \
                                     if 'agenda_time_id' in bot_user else None
                                 if agenda_time_id:
