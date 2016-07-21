@@ -162,10 +162,12 @@ def webhook():
                             write_task(sender_id, tc, message)
                         elif 'due ' in message:
                             date_string = message.split(' ')[1]
+                            print date_string
                             j = 0
                             old_event = data[i]
-                            while 'postback' not in old_event:
+                            while i >= j and 'postback' not in old_event:
                                 old_event = data[i - j]
+                                print old_event
                             old_payload = old_event['postback']['payload']
                             task_id = old_payload.split('task_id:')[1]
                             print task_id
