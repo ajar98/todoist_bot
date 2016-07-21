@@ -590,6 +590,7 @@ def today_tasks(sender_id, tc):
 
 
 def send_persistent_menu():
+    print 'persistent menu'
     fb_response = requests.post(
         FB_THREAD_SETTINGS_ENDPOINT,
         params={'access_token': os.environ['FB_APP_TOKEN']},
