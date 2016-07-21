@@ -199,7 +199,7 @@ def webhook():
                                     scheduler.remove_job(agenda_time_id)
                                     agenda_job = scheduler.add_job(
                                         today_tasks,
-                                        args=[entry['sender_id'], tc],
+                                        args=[sender_id, tc],
                                         trigger='cron',
                                         hour=new_agenda_time.hour,
                                         minute=new_agenda_time.minute,
