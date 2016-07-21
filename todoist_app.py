@@ -559,6 +559,31 @@ def add_reminder_job(reminder_date, sender_id, user_id,
     )
 
 
+def today_tasks(sender_id, tc):
+    today_tasks = tc.get_today_tasks()
+    if today_tasks:
+        send_FB_text(
+            sender_id,
+            'Here are your tasks for today:'
+        )
+        send_tasks(
+            sender_id,
+            today_tasks
+        )
+    else:
+        send_FB_text(
+            sender_id,
+            'You have no tasks today! Have a great day!'
+        )
+    send_FB_text(
+        sender_id,
+        (
+            'To set when your tasks for the day are sent to you, '
+            'type "set day overview time to <date_string>"'
+        )
+    )
+
+
 def send_FB_message(sender_id, message):
     fb_response = requests.post(
         FB_MESSAGES_ENDPOINT,
