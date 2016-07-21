@@ -1,4 +1,5 @@
-from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.jobstores.mongodb import MongoDBJobStore
 import os
 from pymongo import MongoClient
 from client import TodoistClient
