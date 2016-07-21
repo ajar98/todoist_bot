@@ -66,7 +66,8 @@ def webhook():
             return 'Wrong validation token'
     elif request.method == 'POST':
         data = json.loads(request.data)['entry'][0]['messaging']
-        for event in data:
+        for i in range(len(data)):
+            event = data[i]
             # check if the event was sent by someone
             if 'sender' in event:
                 sender_id = event['sender']['id']
@@ -101,6 +102,7 @@ def webhook():
                         )
                     if 'message' in event and 'text' in event['message']:
                         message = event['message']['text']
+                        app.logger.info('Message: {0}'.format(message))
                         if 'tasks' in message.lower():
                             # return tasks in project
                             if ' in ' in message.lower():
@@ -226,7 +228,7 @@ def webhook():
                             send_tasks(sender_id, tc.get_this_week_tasks())
                         elif payload == 'write':
                             send_write_request(sender_id)
-                        elif 'task_id' in payload:
+                        elif 'complete' in payload:
                             complete_task(
                                 sender_id,
                                 tc,
@@ -257,9 +259,16 @@ def send_tasks(sender_id, tasks):
             [
                 {
                     'type': 'postback',
-                    'title':
-                    'Complete',
-                    'payload': '{0}:{1}'.format(
+                    'title': 'Complete',
+                    'payload': 'complete {0}:{1}'.format(
+                        'task_id',
+                        task['id']
+                    )
+                },
+                {
+                    'type': 'postback',
+                    'title': 'Postpone',
+                    'payload': 'postpone {0}:{1}'.format(
                         'task_id',
                         task['id']
                     )
