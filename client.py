@@ -69,7 +69,7 @@ class TodoistClient():
             [
                 UpdateTask(
                     task_id,
-                    updates
+                    **updates
                 ).to_dict()
             ]
         )
