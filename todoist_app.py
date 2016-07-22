@@ -660,6 +660,11 @@ def send_persistent_menu():
                         'type': 'postback',
                         'title': 'Write tasks',
                         'payload': 'write'
+                    },
+                    {
+                        'type': 'web_url',
+                        'title': 'Go to Todoist',
+                        'url': 'https://todoist.com'
                     }
                 ]
             }
