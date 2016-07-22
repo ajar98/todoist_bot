@@ -105,7 +105,7 @@ def webhook():
                         message = event['message']['text']
                         app.logger.info('Message: {0}'.format(message))
                         if 'quick_reply' in event['message']:
-                            print event['message']['quick_reply']
+                            print event['message']['quick_reply']['payload']
                             payload = \
                                 event['message']['quick_reply']['payload']
                             if payload == 'tasks':
@@ -286,11 +286,12 @@ def send_tasks(sender_id, tasks, time_diff):
                 )
             }
         ]
-        if parse(task['due_date_utc']).replace(tzinfo=None) + \
-                timedelta(hours=time_diff) \
-                < (datetime.now() + timedelta(days=1)).replace(
-                    hour=0, minute=0, second=0
-                ):
+        task_due_date = \
+            parse(task['due_date_utc']).replace(tzinfo=None) + \
+            timedelta(hours=time_diff)
+        midnight = (datetime.now() + timedelta(days=1)).replace(
+            hour=0, minute=0, second=0)
+        if task_due_date < midnight:
             buttons += {
                 'type': 'postback',
                 'title': 'Postpone to tomorrow',
