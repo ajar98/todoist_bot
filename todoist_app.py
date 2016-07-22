@@ -105,7 +105,8 @@ def webhook():
                         message = event['message']['text']
                         app.logger.info('Message: {0}'.format(message))
                         if 'quick_reply' in event['message']:
-                            payload = event['message']['quick_reply']['payload']
+                            payload = \
+                                event['message']['quick_reply']['payload']
                             print payload
                             if payload == 'tasks':
                                 send_tasks(
@@ -697,13 +698,13 @@ def send_FB_message(sender_id, message):
         app.logger.info('OK: {0}'.format(200))
 
 
-def send_FB_text(sender_id, text, quick_replies=[]):
+def send_FB_text(sender_id, text, quick_replies=None):
+    message = {'text': text}
+    if quick_replies:
+        message['quick_replies'] = quick_replies
     return send_FB_message(
         sender_id,
-        {
-            'text': text,
-            'quick_replies': quick_replies
-        }
+        message
     )
 
 
