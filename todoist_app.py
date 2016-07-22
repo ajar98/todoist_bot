@@ -65,6 +65,7 @@ def webhook():
         else:
             return 'Wrong validation token'
     elif request.method == 'POST':
+        send_persistent_menu()
         data = json.loads(request.data)['entry'][0]['messaging']
         for i in range(len(data)):
             event = data[i]
@@ -697,5 +698,4 @@ def send_FB_buttons(sender_id, text, buttons):
 
 if __name__ == '__main__':
     scheduler.start()
-    send_persistent_menu()
     app.run(host='0.0.0.0', port=5000)
