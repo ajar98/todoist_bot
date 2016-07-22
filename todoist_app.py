@@ -105,9 +105,8 @@ def webhook():
                         message = event['message']['text']
                         app.logger.info('Message: {0}'.format(message))
                         if 'quick_reply' in event['message']:
-                            print event['message']['quick_reply']['payload']
-                            payload = \
-                                event['message']['quick_reply']['payload']
+                            payload = event['message']['quick_reply']['payload']
+                            print payload
                             if payload == 'tasks':
                                 send_tasks(
                                     sender_id,
@@ -276,6 +275,7 @@ def webhook():
 
 def send_tasks(sender_id, tasks, time_diff):
     for task in tasks:
+        print task['content']
         buttons = [
             {
                 'type': 'postback',
