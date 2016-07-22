@@ -103,9 +103,17 @@ def webhook():
                         )
                     if 'message' in event and 'text' in event['message']:
                         message = event['message']['text']
-                        print event
                         app.logger.info('Message: {0}'.format(message))
-                        if 'tasks' in message.lower():
+                        if 'quick_reply' in event:
+                            payload = event['quick_reply']['payload']
+                            if payload == 'tasks':
+                                send_tasks(
+                                    sender_id,
+                                    tc.get_this_week_tasks()
+                                )
+                            elif payload == 'write':
+                                send_write_request(sender_id)
+                        elif 'tasks' in message.lower():
                             # return tasks in project
                             if ' in ' in message.lower():
                                 project_name = message.lower().split(
