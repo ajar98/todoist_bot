@@ -275,24 +275,21 @@ def webhook():
 
 def send_tasks(sender_id, tasks, time_diff):
     for task in tasks:
-        print task['content']
-        buttons = [
-            {
-                'type': 'postback',
-                'title': 'Complete',
-                'payload': 'complete {0}:{1}'.format(
-                    'task_id',
-                    task['id']
-                )
-            }
-        ]
+        complete_button = {
+            'type': 'postback',
+            'title': 'Complete',
+            'payload': 'complete {0}:{1}'.format(
+                'task_id',
+                task['id']
+            )
+        }
         task_due_date = \
             parse(task['due_date_utc']).replace(tzinfo=None) + \
             timedelta(hours=time_diff)
         midnight = (datetime.now() + timedelta(days=1)).replace(
             hour=0, minute=0, second=0)
         if task_due_date < midnight:
-            buttons += {
+            postpone_button = {
                 'type': 'postback',
                 'title': 'Postpone to tomorrow',
                 'payload': 'postpone {0}:{1}'.format(
@@ -300,6 +297,9 @@ def send_tasks(sender_id, tasks, time_diff):
                     task['id']
                 )
             }
+            buttons = [complete_button, postpone_button]
+        else:
+            buttons = [complete_button]
         send_FB_buttons(
             sender_id,
             '{0} (Due {1})'.format(
