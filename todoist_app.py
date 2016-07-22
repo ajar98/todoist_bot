@@ -286,9 +286,11 @@ def send_tasks(sender_id, tasks, time_diff):
                 )
             }
         ]
-        if task['due_date_utc'] + timedelta(hours=time_diff) \
+        if parse(task['due_date_utc']).replace(tzinfo=None) + \
+                timedelta(hours=time_diff) \
                 < (datetime.now() + timedelta(days=1)).replace(
-                    hour=0, minute=0, second=0):
+                    hour=0, minute=0, second=0
+                ):
             buttons += {
                 'type': 'postback',
                 'title': 'Postpone to tomorrow',
