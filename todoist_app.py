@@ -103,11 +103,10 @@ def webhook():
                         )
                     if 'message' in event and 'text' in event['message']:
                         message = event['message']['text']
-                        print event
                         app.logger.info('Message: {0}'.format(message))
-                        if 'quick_reply' in event:
-                            payload = event['quick_reply']['payload']
-                            print payload
+                        if 'quick_reply' in event['message']:
+                            payload = event['message']
+                            ['quick_reply']['payload']
                             if payload == 'tasks':
                                 send_tasks(
                                     sender_id,
@@ -626,7 +625,6 @@ def today_tasks(sender_id, tc):
 
 
 def send_persistent_menu():
-    print 'persistent menu'
     fb_response = requests.post(
         FB_THREAD_SETTINGS_ENDPOINT,
         params={'access_token': os.environ['FB_APP_TOKEN']},
