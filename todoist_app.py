@@ -103,6 +103,7 @@ def webhook():
                         )
                     if 'message' in event and 'text' in event['message']:
                         message = event['message']['text']
+                        print event
                         app.logger.info('Message: {0}'.format(message))
                         if 'tasks' in message.lower():
                             # return tasks in project
