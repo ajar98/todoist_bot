@@ -327,7 +327,7 @@ def postpone_tomorrow_task(sender_id, tc, task_id):
 
 
 def send_generic_response(sender_id):
-    send_FB_buttons(
+    send_FB_text(
         sender_id,
         (
             'Hi there! Would you like view your tasks or write tasks?\n'
@@ -337,14 +337,14 @@ def send_generic_response(sender_id):
             'You can view tasks in a specific project'
             ' by typing \'tasks in <project_name>\'\n'
         ),
-        [
+        quick_replies=[
             {
-                'type': 'postback',
+                'content_type': 'text',
                 'title': 'View my tasks',
                 'payload': 'tasks'
             },
             {
-                'type': 'postback',
+                'content_type': 'text',
                 'title': 'Write tasks',
                 'payload': 'write'
             }
@@ -671,11 +671,12 @@ def send_FB_message(sender_id, message):
         app.logger.info('OK: {0}'.format(200))
 
 
-def send_FB_text(sender_id, text):
+def send_FB_text(sender_id, text, quick_replies=[]):
     return send_FB_message(
         sender_id,
         {
-            'text': text
+            'text': text,
+            'quick_replies': quick_replies
         }
     )
 
