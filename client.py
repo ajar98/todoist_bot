@@ -15,6 +15,7 @@ ID_LENGTH = 20
 
 ADD_TASK_TYPE = 'item_add'
 ITEM_COMPLETE_TYPE = 'item_complete'
+UPDATE_TASK_TYPE = 'item_update'
 
 
 class TodoistClient():
@@ -59,6 +60,16 @@ class TodoistClient():
             [
                 CompleteTask(
                     task_id
+                ).to_dict()
+            ]
+        )
+
+    def update_task(self, task_id, **updates):
+        return self.write(
+            [
+                UpdateTask(
+                    task_id,
+                    updates
                 ).to_dict()
             ]
         )
@@ -132,4 +143,15 @@ class CompleteTask(Command):
             {
                 'ids': [task_id]
             }
+        )
+
+
+class UpdateTask(Command):
+
+    def __init__(self, task_id, **updates):
+        args = updates
+        args['id'] = task_id
+        super(UpdateTask, self).__init__(
+            UPDATE_TASK_TYPE,
+            args
         )

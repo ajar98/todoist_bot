@@ -160,18 +160,6 @@ def webhook():
                         # write a task due a certain date
                         elif ' due ' in message:
                             write_task(sender_id, tc, message)
-                        elif 'due ' in message:
-                            date_string = message.split(' ')[1]
-                            print date_string
-                            j = 0
-                            old_event = data[i]
-                            while i >= j and 'postback' not in old_event:
-                                old_event = data[i - j]
-                                j += 1
-                                print old_event
-                            old_payload = old_event['postback']['payload']
-                            task_id = old_payload.split('task_id:')[1]
-                            print task_id
                         elif 'alert offset' in message:
                             try:
                                 new_offset = int(message.replace(
@@ -247,12 +235,10 @@ def webhook():
                                 payload.split(':')[1]
                             )
                         elif 'postpone' in payload:
-                            send_FB_text(
+                            postpone_tomorrow_task(
                                 sender_id,
-                                (
-                                    'Enter a new date string as follows: '
-                                    'due <date_string>'
-                                )
+                                tc,
+                                payload.split(':')[1]
                             )
                         elif 'remove_alert' in payload:
                             task_id = payload.split(':')[1]
@@ -287,7 +273,7 @@ def send_tasks(sender_id, tasks):
                 },
                 {
                     'type': 'postback',
-                    'title': 'Postpone',
+                    'title': 'Postpone to tomorrow',
                     'payload': 'postpone {0}:{1}'.format(
                         'task_id',
                         task['id']
@@ -328,6 +314,15 @@ def write_task(sender_id, tc, message):
 def complete_task(sender_id, tc, task_id):
     tc.complete_task(task_id)
     send_FB_text(sender_id, 'Task completed.')
+
+
+def postpone_task(sender_id, tc, task_id, new_date_string):
+    tc.update_task(task_id, date_string=new_date_string)
+    send_FB_text(sender_id, 'Task postponed.')
+
+
+def postpone_tomorrow_task(sender_id, tc, task_id):
+    postpone_task(sender_id, tc, task_id, 'tomorrow')
 
 
 def send_generic_response(sender_id):
