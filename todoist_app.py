@@ -105,6 +105,7 @@ def webhook():
                         message = event['message']['text']
                         app.logger.info('Message: {0}'.format(message))
                         if 'quick_reply' in event['message']:
+                            print event['message']
                             payload = \
                                 event['message']['quick_reply']['payload']
                             if payload == 'tasks':
