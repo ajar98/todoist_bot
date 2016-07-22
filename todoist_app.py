@@ -105,12 +105,13 @@ def webhook():
                         message = event['message']['text']
                         app.logger.info('Message: {0}'.format(message))
                         if 'quick_reply' in event['message']:
-                            payload = event['message']
-                            ['quick_reply']['payload']
+                            payload = \
+                                event['message']['quick_reply']['payload']
                             if payload == 'tasks':
                                 send_tasks(
                                     sender_id,
-                                    tc.get_this_week_tasks()
+                                    tc.get_this_week_tasks(),
+                                    tc.tz_info['hours']
                                 )
                             elif payload == 'write':
                                 send_write_request(sender_id)
@@ -127,7 +128,8 @@ def webhook():
                                     if len(project_tasks) > 0:
                                         send_tasks(
                                             sender_id,
-                                            project_tasks
+                                            project_tasks,
+                                            tc.tz_info['hours']
                                         )
                                     else:
                                         send_FB_text(
@@ -160,13 +162,15 @@ def webhook():
                                         sender_id,
                                         tc.get_tasks_up_to_date(
                                             datetime.date()
-                                        )
+                                        ),
+                                        tc.tz_info['hours']
                                     )
                             # send a normal tasks response
                             else:
                                 send_tasks(
                                     sender_id,
-                                    tc.get_this_week_tasks()
+                                    tc.get_this_week_tasks(),
+                                    tc.tz_info['hours']
                                 )
                         # write a task due a certain date
                         elif ' due ' in message:
@@ -236,7 +240,11 @@ def webhook():
                         payload = event['postback']['payload']
                         app.logger.info('Payload: {0}'.format(payload))
                         if payload == 'tasks':
-                            send_tasks(sender_id, tc.get_this_week_tasks())
+                            send_tasks(
+                                sender_id,
+                                tc.get_this_week_tasks(),
+                                tc.tz_info['hours']
+                            )
                         elif payload == 'write':
                             send_write_request(sender_id)
                         elif 'complete' in payload:
@@ -265,32 +273,36 @@ def webhook():
         return Response()
 
 
-def send_tasks(sender_id, tasks):
+def send_tasks(sender_id, tasks, time_diff):
     for task in tasks:
+        buttons = [
+            {
+                'type': 'postback',
+                'title': 'Complete',
+                'payload': 'complete {0}:{1}'.format(
+                    'task_id',
+                    task['id']
+                )
+            }
+        ]
+        if task['due_date_utc'] + timedelta(hours=time_diff) \
+                < (datetime.now() + timedelta(days=1)).replace(
+                    hour=0, minute=0, second=0):
+            buttons += {
+                'type': 'postback',
+                'title': 'Postpone to tomorrow',
+                'payload': 'postpone {0}:{1}'.format(
+                    'task_id',
+                    task['id']
+                )
+            }
         send_FB_buttons(
             sender_id,
             '{0} (Due {1})'.format(
                 task['content'],
                 task['date_string'] if task['date_string'] else 'never'
             ),
-            [
-                {
-                    'type': 'postback',
-                    'title': 'Complete',
-                    'payload': 'complete {0}:{1}'.format(
-                        'task_id',
-                        task['id']
-                    )
-                },
-                {
-                    'type': 'postback',
-                    'title': 'Postpone to tomorrow',
-                    'payload': 'postpone {0}:{1}'.format(
-                        'task_id',
-                        task['id']
-                    )
-                },
-            ]
+            buttons
         )
 
 
@@ -608,7 +620,8 @@ def today_tasks(sender_id, tc):
         )
         send_tasks(
             sender_id,
-            today_tasks
+            today_tasks,
+            tc.tz_info['hours']
         )
     else:
         send_FB_text(
