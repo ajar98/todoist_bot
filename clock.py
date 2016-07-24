@@ -1,16 +1,34 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.jobstores.mongodb import MongoDBJobStore
+import os
+from pymongo import MongoClient
 from client import TodoistClient
 from todoist_app import send_tasks, send_FB_text
+from todoist_app import MONGO_DB_TOKENS_ENDPOINT, MONGO_DB_TOKENS_PORT
+from todoist_app import MONGO_DB_TOKENS_DATABASE
 from todoist_app import MONGO_DB_JOBS_URL
 from dateutil.parser import parse
-from datetime import timedelta
+from datetime import timedelta, datetime
 from uuid import uuid4
+
+
+def connect():
+    connection = MongoClient(
+        MONGO_DB_TOKENS_ENDPOINT,
+        MONGO_DB_TOKENS_PORT
+    )
+    handle = connection[MONGO_DB_TOKENS_DATABASE]
+    handle.authenticate(
+        os.environ['MONGO_DB_USERNAME'],
+        os.environ['MONGO_DB_PWD']
+    )
+    return handle
 
 
 scheduler = BackgroundScheduler(jobstores={
     'default': MongoDBJobStore(host=MONGO_DB_JOBS_URL)
 })
+handle = connect()
 
 
 def today_tasks(sender_id, tc):
