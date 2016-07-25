@@ -125,11 +125,11 @@ def webhook():
                                 project_tasks = tc.get_project_tasks(
                                     project_name
                                 )
-                                # send_tasks(
-                                #     sender_id,
-                                #     project_tasks,
-                                #     tc.tz_info['hours']
-                                # )
+                                send_tasks(
+                                    sender_id,
+                                    project_tasks,
+                                    tc.tz_info['hours']
+                                )
                                 # if type(project_tasks) is list:
                                 #     if len(project_tasks) > 0:
                                 #         send_tasks(
@@ -291,7 +291,7 @@ def send_tasks(sender_id, tasks, time_diff):
         }
         task_due_date = \
             parse(task['due_date_utc']).replace(tzinfo=None) + \
-            timedelta(hours=time_diff) if 'due_date_utc' in task else None
+            timedelta(hours=time_diff) if task['due_date_utc'] else None
         midnight = (datetime.now() + timedelta(days=1)).replace(
             hour=0, minute=0, second=0)
         if task_due_date and task_due_date < midnight:
