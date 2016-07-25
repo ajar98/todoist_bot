@@ -101,12 +101,12 @@ def webhook():
                                 }
                             }
                         )
-                    handle_event(sender_id, tc)
+                    handle_event(event, sender_id, tc)
 
         return Response()
 
 
-def handle_event(sender_id, tc):
+def handle_event(event, sender_id, tc):
     if 'message' in event and 'text' in event['message']:
         message = event['message']['text']
         app.logger.info('Message: {0}'.format(message))
