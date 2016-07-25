@@ -125,7 +125,11 @@ def webhook():
                                 project_tasks = tc.get_project_tasks(
                                     project_name
                                 )
-                                print project_tasks
+                                send_tasks(
+                                    sender_id,
+                                    project_tasks,
+                                    tc.tz_info['hours']
+                                )
                                 # if type(project_tasks) is list:
                                 #     if len(project_tasks) > 0:
                                 #         send_tasks(
