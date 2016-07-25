@@ -125,28 +125,23 @@ def webhook():
                                 project_tasks = tc.get_project_tasks(
                                     project_name
                                 )
-                                send_tasks(
-                                    sender_id,
-                                    project_tasks,
-                                    tc.tz_info['hours']
-                                )
-                                # if type(project_tasks) is list:
-                                #     if len(project_tasks) > 0:
-                                #         send_tasks(
-                                #             sender_id,
-                                #             project_tasks,
-                                #             tc.tz_info['hours']
-                                #         )
-                                #     else:
-                                #         send_FB_text(
-                                #             sender_id,
-                                #             'No tasks in this project.'
-                                #         )
-                                # else:
-                                #     send_FB_text(
-                                #         sender_id,
-                                #         'Not a valid project.'
-                                #     )
+                                if type(project_tasks) is list:
+                                    if len(project_tasks) > 0:
+                                        send_tasks(
+                                            sender_id,
+                                            project_tasks,
+                                            tc.tz_info['hours']
+                                        )
+                                    else:
+                                        send_FB_text(
+                                            sender_id,
+                                            'No tasks in this project.'
+                                        )
+                                else:
+                                    send_FB_text(
+                                        sender_id,
+                                        'Not a valid project.'
+                                    )
                             # return tasks up to a certain date
                             elif ' up to ' in message.lower():
                                 date_string = message.lower().split(
