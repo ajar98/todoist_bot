@@ -101,177 +101,216 @@ def webhook():
                                 }
                             }
                         )
-                    if 'message' in event and 'text' in event['message']:
-                        message = event['message']['text']
-                        app.logger.info('Message: {0}'.format(message))
-                        if 'quick_reply' in event['message']:
-                            payload = \
-                                event['message']['quick_reply']['payload']
-                            print payload
-                            if payload == 'tasks':
-                                send_tasks(
-                                    sender_id,
-                                    tc.get_this_week_tasks(),
-                                    tc.tz_info['hours']
-                                )
-                            elif payload == 'write':
-                                send_write_request(sender_id)
-                        elif 'tasks' in message.lower():
-                            # return tasks in project
-                            if ' in ' in message.lower():
-                                project_name = message.lower().split(
-                                    ' in '
-                                )[1]
-                                project_tasks = tc.get_project_tasks(
-                                    project_name
-                                )
-                                if type(project_tasks) is list:
-                                    if len(project_tasks) > 0:
-                                        send_tasks(
-                                            sender_id,
-                                            project_tasks,
-                                            tc.tz_info['hours']
-                                        )
-                                    else:
-                                        send_FB_text(
-                                            sender_id,
-                                            'No tasks in this project.'
-                                        )
-                                else:
-                                    send_FB_text(
-                                        sender_id,
-                                        'Not a valid project.'
-                                    )
-                            # return tasks up to a certain date
-                            elif ' up to ' in message.lower():
-                                date_string = message.lower().split(
-                                    ' up to '
-                                )[1]
-                                datetime = None
-                                try:
-                                    datetime = parse(date_string)
-                                except:
-                                    send_FB_text(
-                                        sender_id,
-                                        (
-                                            'Date text not recognized. \n'
-                                            'Try using actual dates.'
-                                        )
-                                    )
-                                if datetime:
-                                    send_tasks(
-                                        sender_id,
-                                        tc.get_tasks_up_to_date(
-                                            datetime.date()
-                                        ),
-                                        tc.tz_info['hours']
-                                    )
-                            # send a normal tasks response
-                            else:
-                                send_tasks(
-                                    sender_id,
-                                    tc.get_this_week_tasks(),
-                                    tc.tz_info['hours']
-                                )
-                        # write a task due a certain date
-                        elif ' due ' in message:
-                            write_task(sender_id, tc, message)
-                        elif 'alert offset' in message:
-                            try:
-                                new_offset = int(message.replace(
-                                    'set alert offset to ', ''
-                                ).split(' ')[0])
-                            except ValueError:
-                                send_FB_text(sender_id, 'Invalid input.')
-                            else:
-                                handle.bot_users.update(
-                                    {'user_id': tc.user_id},
-                                    {
-                                        '$set': {
-                                            'reminder_offset': new_offset
-                                        }
-                                    }
-                                )
-                                send_FB_text(
-                                    sender_id,
-                                    'Alert settings changed.'
-                                )
-                        elif 'set day overview time to ' in message:
-                            date_string = message.replace(
-                                'set day overview time to ',
-                                ''
-                            )
-                            try:
-                                new_agenda_time = \
-                                    parse(date_string) - \
-                                    timedelta(hours=tc.tz_info['hours'])
-                            except ValueError:
-                                send_FB_text(
-                                    sender_id,
-                                    'Invalid date string. Try again'
-                                )
-                            else:
-                                bot_user = [x for x in handle.bot_users.find(
-                                    {'access_token': access_token})][0]
-                                agenda_time_id = bot_user['agenda_time_id'] \
-                                    if 'agenda_time_id' in bot_user else None
-                                if agenda_time_id:
-                                    scheduler.remove_job(agenda_time_id)
-                                    agenda_job = scheduler.add_job(
-                                        today_tasks,
-                                        args=[sender_id, tc],
-                                        trigger='cron',
-                                        hour=new_agenda_time.hour,
-                                        minute=new_agenda_time.minute,
-                                        id=agenda_time_id
-                                    )
-                                    send_FB_text(
-                                        sender_id,
-                                        'Day overview time updated.'
-                                    )
-                                else:
-                                    send_FB_text(
-                                        sender_id,
-                                        'No day overview scheduled.'
-                                    )
-                        else:
-                            send_generic_response(sender_id)
-                    # button handling
-                    if 'postback' in event:
-                        payload = event['postback']['payload']
-                        app.logger.info('Payload: {0}'.format(payload))
-                        if payload == 'tasks':
-                            send_tasks(
-                                sender_id,
-                                tc.get_this_week_tasks(),
-                                tc.tz_info['hours']
-                            )
-                        elif payload == 'write':
-                            send_write_request(sender_id)
-                        elif 'complete' in payload:
-                            complete_task(
-                                sender_id,
-                                tc,
-                                payload.split(':')[1]
-                            )
-                        elif 'postpone' in payload:
-                            postpone_tomorrow_task(
-                                sender_id,
-                                tc,
-                                payload.split(':')[1]
-                            )
-                        elif 'remove_alert' in payload:
-                            task_id = payload.split(':')[1]
-                            job_id = [x for x in handle.bot_users.find(
-                                {'user_id': tc.user_id}
-                            )][0]['reminder_jobs'][task_id]
-                            scheduler.remove_job(job_id)
-                            remove_reminder_job(
-                                tc.user_id,
-                                task_id
-                            )
-                            send_FB_text(sender_id, 'Alert removed.')
+                    handle_event(sender_id, tc)
+
         return Response()
+
+
+def handle_event(sender_id, tc):
+    if 'message' in event and 'text' in event['message']:
+        message = event['message']['text']
+        app.logger.info('Message: {0}'.format(message))
+        if 'quick_reply' in event['message']:
+            handle_quick_replies(
+                event['message']['quick_reply']['payload'],
+                sender_id, tc
+            )
+        elif 'tasks' in message.lower():
+            # return tasks in project
+            if ' in ' in message.lower():
+                send_project_tasks(
+                    message.lower().split(' in ')[1],
+                    sender_id,
+                    tc
+                )
+            # return tasks up to a certain date
+            elif ' up to ' in message.lower():
+                send_tasks_up_to_date(
+                    message.lower().split(' up to ')[1],
+                    sender_id,
+                    tc
+                )
+            # send a normal tasks response
+            else:
+                send_tasks(
+                    sender_id,
+                    tc.get_this_week_tasks(),
+                    tc.tz_info['hours']
+                )
+        # write a task due a certain date
+        elif ' due ' in message:
+            write_task(sender_id, tc, message)
+        elif 'alert offset' in message:
+            set_alert_offset(
+                message.replace(
+                    'set alert offset to ', ''
+                ).split(' ')[0],
+                sender_id,
+                tc
+            )
+        elif 'set day overview time to ' in message:
+            set_day_overview_time(
+                message.replace('set day overview time to ', ''),
+                sender_id,
+                tc
+            )
+        else:
+            send_generic_response(sender_id)
+    # button handling
+    if 'postback' in event:
+        handle_postback(
+            event['postback']['payload'],
+            sender_id,
+            tc
+        )
+
+
+def handle_quick_replies(payload, sender_id, tc):
+    if payload == 'tasks':
+        send_tasks(
+            sender_id,
+            tc.get_this_week_tasks(),
+            tc.tz_info['hours']
+        )
+    elif payload == 'write':
+        send_write_request(sender_id)
+    else:
+        app.logger.info('Quick reply not configured.')
+
+
+def send_project_tasks(project_name, sender_id, tc):
+    project_tasks = tc.get_project_tasks(
+        project_name
+    )
+    if type(project_tasks) is list:
+        if len(project_tasks) > 0:
+            send_tasks(
+                sender_id,
+                project_tasks,
+                tc.tz_info['hours']
+            )
+        else:
+            send_FB_text(
+                sender_id,
+                'No tasks in this project.'
+            )
+    else:
+        send_FB_text(
+            sender_id,
+            'Not a valid project.'
+        )
+
+
+def send_tasks_up_to_date(date_string, sender_id, tc):
+    try:
+        datetime = parse(date_string)
+    except:
+        send_FB_text(
+            sender_id,
+            (
+                'Date text not recognized. \n'
+                'Try using actual dates.'
+            )
+        )
+    else:
+        send_tasks(
+            sender_id,
+            tc.get_tasks_up_to_date(
+                datetime.date()
+            ),
+            tc.tz_info['hours']
+        )
+
+
+def set_alert_offset(new_offset_string, sender_id, tc):
+    try:
+        new_offset = int(new_offset_string)
+    except ValueError:
+        send_FB_text(sender_id, 'Invalid input.')
+    else:
+        handle.bot_users.update(
+            {'user_id': tc.user_id},
+            {
+                '$set': {
+                    'reminder_offset': new_offset
+                }
+            }
+        )
+        send_FB_text(
+            sender_id,
+            'Alert settings changed.'
+        )
+
+
+def set_day_overview_time(date_string, sender_id, tc):
+    try:
+        new_agenda_time = \
+            parse(date_string) - \
+            timedelta(hours=tc.tz_info['hours'])
+    except ValueError:
+        send_FB_text(
+            sender_id,
+            'Invalid date string. Try again'
+        )
+    else:
+        bot_user = [x for x in handle.bot_users.find(
+            {'user_id': tc.user_id})][0]
+        agenda_time_id = bot_user['agenda_time_id'] \
+            if 'agenda_time_id' in bot_user else None
+        if agenda_time_id:
+            scheduler.remove_job(agenda_time_id)
+            agenda_job = scheduler.add_job(
+                today_tasks,
+                args=[sender_id, tc],
+                trigger='cron',
+                hour=new_agenda_time.hour,
+                minute=new_agenda_time.minute,
+                id=agenda_time_id
+            )
+            send_FB_text(
+                sender_id,
+                'Day overview time updated.'
+            )
+        else:
+            send_FB_text(
+                sender_id,
+                'No day overview scheduled.'
+            )
+
+
+def handle_postback(payload, sender_id, tc):
+    app.logger.info('Payload: {0}'.format(payload))
+    if payload == 'tasks':
+        send_tasks(
+            sender_id,
+            tc.get_this_week_tasks(),
+            tc.tz_info['hours']
+        )
+    elif payload == 'write':
+        send_write_request(sender_id)
+    elif 'complete' in payload:
+        complete_task(
+            sender_id,
+            tc,
+            payload.split(':')[1]
+        )
+    elif 'postpone' in payload:
+        postpone_tomorrow_task(
+            sender_id,
+            tc,
+            payload.split(':')[1]
+        )
+    elif 'remove_alert' in payload:
+        task_id = payload.split(':')[1]
+        job_id = [x for x in handle.bot_users.find(
+            {'user_id': tc.user_id}
+        )][0]['reminder_jobs'][task_id]
+        scheduler.remove_job(job_id)
+        remove_reminder_job(
+            tc.user_id,
+            task_id
+        )
+        send_FB_text(sender_id, 'Alert removed.')
 
 
 def send_tasks(sender_id, tasks, time_diff):
@@ -612,32 +651,6 @@ def add_reminder_job(reminder_date, sender_id, user_id,
         (
             'You can change the amount of time between the alert'
             ' and the due date by typing "set alert offset to <x> minutes"'
-        )
-    )
-
-
-def today_tasks(sender_id, tc):
-    today_tasks = tc.get_today_tasks()
-    if today_tasks:
-        send_FB_text(
-            sender_id,
-            'Here are your tasks for today:'
-        )
-        send_tasks(
-            sender_id,
-            today_tasks,
-            tc.tz_info['hours']
-        )
-    else:
-        send_FB_text(
-            sender_id,
-            'You have no tasks today! Have a great day!'
-        )
-    send_FB_text(
-        sender_id,
-        (
-            'To set when your tasks for the day are sent to you, '
-            'type "set day overview time to <date_string>"'
         )
     )
 

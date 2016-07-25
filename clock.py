@@ -40,7 +40,8 @@ def today_tasks(sender_id, tc):
         )
         send_tasks(
             sender_id,
-            today_tasks
+            today_tasks,
+            tc.tz_info['hours']
         )
     else:
         send_FB_text(
@@ -53,7 +54,7 @@ if __name__ == '__main__':
     for entry in handle.bot_users.find():
         tc = TodoistClient(entry['access_token'])
         job_id = uuid4().__str__()
-        agenda_time = parse('8:15 PM') - timedelta(hours=tc.tz_info['hours'])
+        agenda_time = parse('3:45 PM') - timedelta(hours=tc.tz_info['hours'])
         job = scheduler.add_job(
             today_tasks,
             args=[entry['sender_id'], tc],
