@@ -1,5 +1,5 @@
 from flask import Flask
-from flask import request, abort
+from flask import request
 import json
 import requests
 import urllib
@@ -148,12 +148,12 @@ def handle_event(event, sender_id, tc):
                 sender_id,
                 tc
             )
-        elif 'set day overview time to ' in message:
-            set_day_overview_time(
-                message.replace('set day overview time to ', ''),
-                sender_id,
-                tc
-            )
+        # elif 'set day overview time to ' in message:
+        #     set_day_overview_time(
+        #         message.replace('set day overview time to ', ''),
+        #         sender_id,
+        #         tc
+        #     )
         else:
             send_generic_response(sender_id)
     # button handling
@@ -242,40 +242,40 @@ def set_alert_offset(new_offset_string, sender_id, tc):
         )
 
 
-def set_day_overview_time(date_string, sender_id, tc):
-    try:
-        new_agenda_time = \
-            parse(date_string) - \
-            timedelta(hours=tc.tz_info['hours'])
-    except ValueError:
-        send_FB_text(
-            sender_id,
-            'Invalid date string. Try again'
-        )
-    else:
-        bot_user = [x for x in handle.bot_users.find(
-            {'user_id': tc.user_id})][0]
-        agenda_time_id = bot_user['agenda_time_id'] \
-            if 'agenda_time_id' in bot_user else None
-        if agenda_time_id:
-            scheduler.remove_job(agenda_time_id)
-            agenda_job = scheduler.add_job(
-                today_tasks,
-                args=[sender_id, tc],
-                trigger='cron',
-                hour=new_agenda_time.hour,
-                minute=new_agenda_time.minute,
-                id=agenda_time_id
-            )
-            send_FB_text(
-                sender_id,
-                'Day overview time updated.'
-            )
-        else:
-            send_FB_text(
-                sender_id,
-                'No day overview scheduled.'
-            )
+# def set_day_overview_time(date_string, sender_id, tc):
+#     try:
+#         new_agenda_time = \
+#             parse(date_string) - \
+#             timedelta(hours=tc.tz_info['hours'])
+#     except ValueError:
+#         send_FB_text(
+#             sender_id,
+#             'Invalid date string. Try again'
+#         )
+#     else:
+#         bot_user = [x for x in handle.bot_users.find(
+#             {'user_id': tc.user_id})][0]
+#         agenda_time_id = bot_user['agenda_time_id'] \
+#             if 'agenda_time_id' in bot_user else None
+#         if agenda_time_id:
+#             scheduler.remove_job(agenda_time_id)
+#             agenda_job = scheduler.add_job(
+#                 today_tasks,
+#                 args=[sender_id, tc],
+#                 trigger='cron',
+#                 hour=new_agenda_time.hour,
+#                 minute=new_agenda_time.minute,
+#                 id=agenda_time_id
+#             )
+#             send_FB_text(
+#                 sender_id,
+#                 'Day overview time updated.'
+#             )
+#         else:
+#             send_FB_text(
+#                 sender_id,
+#                 'No day overview scheduled.'
+#             )
 
 
 def handle_postback(payload, sender_id, tc):
@@ -424,7 +424,6 @@ def todoist_callback(methods=['GET']):
         error = request.args.get('error', '')
         if error:
             return 'Error: ' + error
-        state = request.args.get('state', '')
         code = request.args.get('code')
         access_token = get_token(code)
         app.logger.info('Access token: {0}'.format(access_token))
@@ -583,7 +582,7 @@ def remove_reminder_job(user_id, task_id):
     bot_user = [x for x in handle.bot_users.find(
         {'user_id': user_id})][0]
     reminder_jobs = bot_user['reminder_jobs']
-    job_id = reminder_jobs.pop(str(task_id))
+    reminder_jobs.pop(str(task_id))
     handle.bot_users.update(
         {'user_id': user_id},
         {
@@ -598,7 +597,7 @@ def add_reminder_job(reminder_date, sender_id, user_id,
                      task, reminder_offset, time_diff):
     job_id = uuid4().__str__()
     task_id = task['id']
-    job = scheduler.add_job(
+    scheduler.add_job(
         send_reminder,
         args=[sender_id, user_id, task, reminder_offset],
         trigger='cron',

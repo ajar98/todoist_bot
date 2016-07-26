@@ -8,7 +8,7 @@ from todoist_app import MONGO_DB_TOKENS_ENDPOINT, MONGO_DB_TOKENS_PORT
 from todoist_app import MONGO_DB_TOKENS_DATABASE
 from todoist_app import MONGO_DB_JOBS_URL
 from dateutil.parser import parse
-from datetime import timedelta, datetime
+from datetime import timedelta
 from uuid import uuid4
 
 

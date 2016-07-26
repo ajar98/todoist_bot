@@ -1,7 +1,4 @@
-import json
 from todoist.api import TodoistAPI
-import random
-import string
 from dateutil.parser import parse
 import datetime
 from datetime import timedelta
