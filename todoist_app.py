@@ -568,7 +568,7 @@ def send_reminder(sender_id, user_id, task, mins_left):
                 'type': 'postback',
                 'title':
                 'Complete',
-                'payload': '{0}:{1}'.format(
+                'payload': 'complete {0}:{1}'.format(
                     'task_id',
                     task['id']
                 )
