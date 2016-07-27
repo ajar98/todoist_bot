@@ -49,6 +49,7 @@ def today_tasks(sender_id, tc):
 
 if __name__ == '__main__':
     for entry in handle.bot_users.find():
+        print 'Clock for {0}'.format(entry['access_token'])
         tc = TodoistClient(entry['access_token'])
         job_id = uuid4().__str__()
         job = scheduler.add_job(
