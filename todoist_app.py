@@ -506,6 +506,7 @@ def todoist_notifications():
         access_token = bot_user['access_token']
         tc = TodoistClient(access_token)
         task = data['event_data']
+        app.logger.info('Item {0}.'.format(data['event_name'].split(':')[1]))
         if data['event_name'] == 'item:added':
             if task['due_date_utc']:
                 # tz naivete necessary to compare objects

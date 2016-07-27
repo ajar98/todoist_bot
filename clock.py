@@ -1,15 +1,14 @@
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.jobstores.mongodb import MongoDBJobStore
+from apscheduler.schedulers.blocking import BlockingScheduler
 import os
 from pymongo import MongoClient
 from client import TodoistClient
 from todoist_app import send_tasks, send_FB_text
 from todoist_app import MONGO_DB_TOKENS_ENDPOINT, MONGO_DB_TOKENS_PORT
 from todoist_app import MONGO_DB_TOKENS_DATABASE
-from todoist_app import MONGO_DB_JOBS_URL
-from dateutil.parser import parse
-from datetime import timedelta
 from uuid import uuid4
+
+
+DAY_OVERVIEW_TIME_HOUR = 6
 
 
 def connect():
@@ -25,9 +24,7 @@ def connect():
     return handle
 
 
-scheduler = BackgroundScheduler(jobstores={
-    'default': MongoDBJobStore(host=MONGO_DB_JOBS_URL)
-})
+scheduler = BlockingScheduler()
 handle = connect()
 
 
@@ -54,13 +51,11 @@ if __name__ == '__main__':
     for entry in handle.bot_users.find():
         tc = TodoistClient(entry['access_token'])
         job_id = uuid4().__str__()
-        agenda_time = parse('6 AM') - timedelta(hours=tc.tz_info['hours'])
         job = scheduler.add_job(
             today_tasks,
             args=[entry['sender_id'], tc],
             trigger='cron',
-            hour=agenda_time.hour,
-            minute=agenda_time.minute,
+            hour=DAY_OVERVIEW_TIME_HOUR - tc.tz_info['hours'],
             id=job_id
         )
     scheduler.start()
