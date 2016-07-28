@@ -5,6 +5,7 @@ from client import TodoistClient
 from todoist_app import send_tasks, send_FB_text
 from todoist_app import MONGO_DB_TOKENS_ENDPOINT, MONGO_DB_TOKENS_PORT
 from todoist_app import MONGO_DB_TOKENS_DATABASE
+from apscheduler.schedulers import SchedulerAlreadyRunningError
 from uuid import uuid4
 
 
@@ -47,16 +48,21 @@ def today_tasks(sender_id, tc):
         )
 
 
-if __name__ == '__main__':
+@scheduler.scheduled_job('cron', hour=0)
+def schedule_day_overview():
     for entry in handle.bot_users.find():
-        print 'Clock for {0}'.format(entry['access_token'])
         tc = TodoistClient(entry['access_token'])
         job_id = uuid4().__str__()
-        job = scheduler.add_job(
+        scheduler.add_job(
             today_tasks,
             args=[entry['sender_id'], tc],
             trigger='cron',
             hour=DAY_OVERVIEW_TIME_HOUR - tc.tz_info['hours'],
             id=job_id
         )
-    scheduler.start()
+    try:
+        scheduler.start()
+    except SchedulerAlreadyRunningError:
+        pass
+
+scheduler.start()
