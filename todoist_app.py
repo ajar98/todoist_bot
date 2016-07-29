@@ -1,5 +1,5 @@
 from flask import Flask
-from flask import request
+from flask import request, redirect
 import json
 import requests
 import urllib
@@ -15,6 +15,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers import SchedulerAlreadyRunningError
 from apscheduler.jobstores.mongodb import MongoDBJobStore
 
+TODOIST_URL = 'https://todoist.com'
 FB_ENDPOINT = 'https://graph.facebook.com/v2.6/me/{0}'
 FB_MESSAGES_ENDPOINT = FB_ENDPOINT.format('messages')
 FB_THREAD_SETTINGS_ENDPOINT = FB_ENDPOINT.format('thread_settings')
@@ -435,7 +436,7 @@ def todoist_callback(methods=['GET']):
                 }
             }
         )
-        return 'success' if access_token and \
+        return redirect(TODOIST_URL) if access_token and \
             handle.bot_users.find(
                 {'access_token': access_token}
             ).count() else 'failure'
