@@ -315,6 +315,18 @@ def handle_postback(payload, sender_id, tc):
 
 
 def send_tasks(sender_id, tasks, time_diff):
+    if len(tasks) == 0:
+        send_FB_text(
+            sender_id,
+            'You have no tasks!',
+            quick_replies=[
+                {
+                    'content_type': 'text',
+                    'title': 'Write tasks',
+                    'payload': 'write'
+                }
+            ]
+        )
     for task in tasks:
         complete_button = {
             'type': 'postback',
@@ -356,8 +368,9 @@ def send_write_request(sender_id):
         sender_id,
         (
             'Enter your task as follows: '
-            '<Task Name> due <Date string>. '
-            'Enter \'never\' if there is no due date.'
+            '<Task Name> due <Date string> in <Project Name>. '
+            'Enter \'never\' if there is no due date. '
+            'Type <Task Name> due <Date string> to write a task in Inbox.'
         )
     )
 
@@ -365,15 +378,20 @@ def send_write_request(sender_id):
 def write_task(sender_id, tc, message):
     task_name = message.split(' due ')[0]
     date_string = message.split(' due ')[1]
+    project_name = 'Inbox'
+    if ' in ' in message:
+        project_string = message.split(' in ')[1]
+        if tc.get_project_to_id(project_string):
+            project_name = project_string
     if date_string == 'never':
         tc.write_task(
             task_name,
-            'Inbox',
+            project_name,
         )
     else:
         tc.write_task(
             task_name,
-            'Inbox',
+            project_name,
             date_string=date_string
         )
     send_FB_text(sender_id, 'Task written.')
