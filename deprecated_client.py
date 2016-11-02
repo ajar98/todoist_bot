@@ -1,4 +1,4 @@
-import requests
+from todoist.api import TodoistAPI
 from dateutil.parser import parse
 import datetime
 from datetime import timedelta
@@ -7,10 +7,6 @@ from uuid import uuid4
 # implement labels
 # create a new project
 # create a task in a new project
-
-TODOIST_ENDPOINT = 'https://todoist.com/API/v7'
-QUICK_ADD_ENDPOINT = 'quick/add'
-SYNC_ENDPOINT = 'sync'
 
 ID_LENGTH = 20
 
@@ -23,20 +19,13 @@ class TodoistClient():
 
     def __init__(self, token):
         self.token = token
-        self.sync_response = self.get_sync_response()
+        self.sync_response = self.api.sync()
         self.tz_info = self.sync_response['user']['tz_info']
         self.user_id = self.sync_response['user']['id']
 
-    def get_sync_response(self):
-        post_data = {
-            'token': self.token,
-            'resource_types': '["all"]',
-            'sync_token': '*'
-        }
-        return requests.post(
-            '{0}/{1}'.format(TODOIST_ENDPOINT, SYNC_ENDPOINT),
-            data=post_data
-        ).json()
+    @property
+    def api(self):
+        return TodoistAPI(self.token)
 
     def get_project_to_id(self, project_name):
         for project in self.sync_response['projects']:
@@ -45,14 +34,7 @@ class TodoistClient():
         return None
 
     def write(self, commands):
-        post_data = {
-            'token': self.token,
-            'commands': str(commands).replace("'", '"')
-        }
-        return requests.post(
-            '{0}/{1}'.format(TODOIST_ENDPOINT, SYNC_ENDPOINT),
-            data=post_data
-        ).json()
+        return self.api.sync(commands=commands)
 
     def write_task(self, task_name, project_name,
                    date_string=None, priority=1):
@@ -67,15 +49,8 @@ class TodoistClient():
             ]
         )
 
-    def write_inbox_task(self, task):
-        post_data = {
-            'token': self.token,
-            'text': task
-        }
-        return requests.post(
-            '{0}/{1}'.format(TODOIST_ENDPOINT, QUICK_ADD_ENDPOINT),
-            data=post_data
-        ).json()
+    def write_inbox_task(self, task_name):
+        return self.write_task(task_name, "Inbox")
 
     def complete_task(self, task_id):
         return self.write(
@@ -128,7 +103,7 @@ class Command(object):
 
     def __init__(self, command_type, args):
         self.type = command_type
-        self.args = {key: value for key, value in args.items() if args[key]}
+        self.args = args
         self.uuid = uuid4().__str__()
         self.temp_id = uuid4().__str__()
 

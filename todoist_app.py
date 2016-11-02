@@ -53,9 +53,8 @@ def connect():
 app = Flask(__name__)
 app.config['DEBUG'] = True
 handle = connect()
-scheduler = BackgroundScheduler(jobstores={
-    'default': MongoDBJobStore(host=MONGO_DB_JOBS_URL)
-})
+scheduler = BackgroundScheduler(
+    jobstores={'default': MongoDBJobStore(host=MONGO_DB_JOBS_URL)})
 
 
 @app.route('/webhook', methods=['GET', 'POST'])
@@ -91,7 +90,7 @@ def webhook():
                     access_token = sender_id_matches[0]['access_token']
                     tc = TodoistClient(access_token)
                     # add user_id to Mongo object to handle live notifications
-                    if not 'user_id' in [x for x in handle.bot_users.find(
+                    if 'user_id' not in [x for x in handle.bot_users.find(
                         {'access_token': access_token}
                     )][0]:
                         handle.bot_users.update(
@@ -141,6 +140,8 @@ def handle_event(event, sender_id, tc):
         # write a task due a certain date
         elif ' due ' in message:
             write_task(sender_id, tc, message)
+        elif message.startswith('inbox'):
+            write_quick_task(sender_id, tc, message)
         elif 'alert offset' in message:
             set_alert_offset(
                 message.replace(
@@ -164,7 +165,6 @@ def handle_event(event, sender_id, tc):
             sender_id,
             tc
         )
-
 
 def handle_quick_replies(payload, sender_id, tc):
     if payload == 'tasks':
@@ -370,7 +370,7 @@ def send_write_request(sender_id):
             'Enter your task as follows: '
             '<Task Name> due <Date string> in <Project Name>. '
             'Enter \'never\' if there is no due date. '
-            'Type <Task Name> due <Date string> to write a task in Inbox.'
+            'Type \'inbox\' <Task string> to write a task in Inbox like you would in Todoist.'
         )
     )
 
@@ -396,6 +396,11 @@ def write_task(sender_id, tc, message):
         )
     send_FB_text(sender_id, 'Task written.')
 
+
+def write_quick_task(sender_id, tc, message):
+    task_string = message[len('inbox '):]
+    tc.write_inbox_task(task_string)
+    send_FB_text(sender_id, 'Task written.')
 
 def complete_task(sender_id, tc, task_id):
     tc.complete_task(task_id)
@@ -457,7 +462,7 @@ def todoist_callback(methods=['GET']):
         return redirect(TODOIST_URL) if access_token and \
             handle.bot_users.find(
                 {'access_token': access_token}
-            ).count() else 'failure'
+        ).count() else 'failure'
 
 
 def get_access_token(sender_id):
