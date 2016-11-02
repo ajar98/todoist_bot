@@ -1,3 +1,4 @@
 push
 .venv
 *.pyc
+*.swp
