@@ -66,6 +66,7 @@ def webhook():
             return 'Wrong validation token'
     elif request.method == 'POST':
         send_persistent_menu()
+        app.logger.info(json.loads(request.data)['entry'][0])
         data = json.loads(request.data)['entry'][0]['messaging']
         for i in range(len(data)):
             event = data[i]
